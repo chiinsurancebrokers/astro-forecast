@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ t.app_title }}</title>
+<style>
+  :root {
+    --ink: #0d1117;
+    --panel: #141b2a;
+    --panel-2: #1b2436;
+    --line: #2a3448;
+    --gold: #c9a15a;
+    --gold-dim: #8a7440;
+    --text: #dfe6f0;
+    --text-dim: #8b96ab;
+    --risk: #b5524a;
+    --growth: #4d8f7b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--ink); color: var(--text);
+    font-family: "Iowan Old Style", "Georgia", serif;
+    line-height: 1.5;
+  }
+  header {
+    padding: 2.5rem 2rem 1.5rem; border-bottom: 1px solid var(--line);
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem;
+    flex-wrap: wrap;
+  }
+  header h1 {
+    margin: 0; font-weight: 500; font-size: 1.6rem; letter-spacing: 0.02em;
+  }
+  header .sub {
+    color: var(--text-dim); font-size: 0.9rem; margin-top: 0.35rem;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  .lang-toggle {
+    display: flex; gap: 0.4rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  .lang-toggle a {
+    text-decoration: none; padding: 0.35rem 0.75rem; border-radius: 4px; font-size: 0.8rem;
+    border: 1px solid var(--line); color: var(--text-dim);
+  }
+  .lang-toggle a.active { background: var(--gold); color: #1a1204; border-color: var(--gold); font-weight: 600; }
+  main { max-width: 1080px; margin: 0 auto; padding: 2rem; }
+  .grid { display: grid; grid-template-columns: 300px 1fr; gap: 1.5rem; }
+  @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
+  .panel {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 6px;
+    padding: 1.25rem 1.4rem;
+  }
+  .panel h2 {
+    font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em;
+    color: var(--gold); margin: 0 0 1rem;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  label {
+    display: block; font-size: 0.75rem; color: var(--text-dim); margin: 0.7rem 0 0.2rem;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  input {
+    width: 100%; background: var(--panel-2); border: 1px solid var(--line);
+    color: var(--text); padding: 0.45rem 0.55rem; border-radius: 4px; font-size: 0.9rem;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  button, .btn {
+    margin-top: 0.8rem; width: 100%; background: var(--gold); border: none;
+    color: #1a1204; font-weight: 600; padding: 0.65rem; border-radius: 4px;
+    cursor: pointer; font-size: 0.85rem; letter-spacing: 0.03em; text-align: center;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    display: block; text-decoration: none;
+  }
+  button:hover, .btn:hover { background: #d9b16c; }
+  .btn.secondary { background: var(--panel-2); color: var(--text); border: 1px solid var(--gold-dim); }
+  .btn.secondary:hover { background: var(--panel); }
+  .result { margin-top: 1.5rem; }
+  .chart-row {
+    display: flex; justify-content: space-between; padding: 0.4rem 0;
+    border-bottom: 1px solid var(--line); font-size: 0.88rem;
+  }
+  .chart-row span:first-child { color: var(--text-dim); }
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; margin-top: 0.5rem; }
+  th, td {
+    text-align: left; padding: 0.35rem 0.5rem; border-bottom: 1px solid var(--line);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  th { color: var(--gold-dim); font-weight: 500; font-size: 0.72rem; text-transform: uppercase; }
+  .disclaimer {
+    margin-top: 1rem; font-size: 0.78rem; color: var(--text-dim);
+    border-left: 2px solid var(--gold-dim); padding-left: 0.75rem;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  .loading { color: var(--text-dim); font-size: 0.85rem; }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>{{ t.app_title }}</h1>
+    <div class="sub">{{ t.app_subtitle }}</div>
+  </div>
+  <div class="lang-toggle">
+    <a href="?lang=en" class="{{ 'active' if lang == 'en' else '' }}">EN</a>
+    <a href="?lang=el" class="{{ 'active' if lang == 'el' else '' }}">EL</a>
+  </div>
+</header>
+<main>
+  <div class="grid">
+    <div class="panel">
+      <h2>{{ t.birth_data }}</h2>
+      <label>{{ t.date }}</label>
+      <input type="date" id="birthDate" value="{{ '%04d-%02d-%02d' % (defaults.year, defaults.month, defaults.day) }}">
+      <label>{{ t.time_local }}</label>
+      <input type="time" id="birthTime" value="{{ '%02d:%02d' % (defaults.hour, defaults.minute) }}">
+      <label>{{ t.utc_offset }}</label>
+      <input type="number" id="utcOffset" value="{{ defaults.utc_offset }}" step="0.5">
+      <label>{{ t.latitude }}</label>
+      <input type="number" id="lat" value="{{ defaults.latitude }}" step="0.0001">
+      <label>{{ t.longitude }}</label>
+      <input type="number" id="lon" value="{{ defaults.longitude }}" step="0.0001">
+      <label>{{ t.forecast_months }}</label>
+      <input type="number" id="months" value="24" min="1" max="60">
+      <button onclick="runForecast()">{{ t.run_forecast }}</button>
+      <a href="#" class="btn secondary" id="pdfLink" onclick="return downloadPdf(this)">{{ t.download_pdf }}</a>
+    </div>
+    <div class="panel">
+      <h2>{{ t.natal_chart }}</h2>
+      <div id="chartOut" class="loading">…</div>
+    </div>
+  </div>
+
+  <div class="panel result" style="margin-top:1.5rem;">
+    <h2>{{ t.current_dasha }}</h2>
+    <div id="dashaOut" class="loading">—</div>
+  </div>
+
+  <div class="panel result" style="margin-top:1.5rem;">
+    <h2>{{ t.monthly_scores }}</h2>
+    <div id="forecastOut" class="loading">—</div>
+    <div class="disclaimer">{{ t.disclaimer }}</div>
+  </div>
+
+  <div class="panel result" style="margin-top:1.5rem;">
+    <h2>{{ t.analysis_title }}</h2>
+    <label>{{ t.question_label }}</label>
+    <textarea id="question" rows="2" placeholder="{{ t.question_placeholder }}"
+      style="width:100%;background:var(--panel-2);border:1px solid var(--line);color:var(--text);
+      padding:0.5rem 0.6rem;border-radius:4px;font-size:0.9rem;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;"></textarea>
+    <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.6rem;">
+      <a href="#" class="preset" data-key="preset_career">{{ t.preset_career }}</a>
+      <a href="#" class="preset" data-key="preset_annual">{{ t.preset_annual }}</a>
+      <a href="#" class="preset" data-key="preset_love">{{ t.preset_love }}</a>
+      <a href="#" class="preset" data-key="preset_money">{{ t.preset_money }}</a>
+    </div>
+    <button onclick="askAnalysis()">{{ t.ask_button }}</button>
+    <div id="analysisOut" style="margin-top:1rem;"></div>
+    <div class="disclaimer">{{ t.analysis_note }}</div>
+  </div>
+
+  <div class="panel result" style="margin-top:1.5rem;">
+    <h2>{{ t.narrative_title }}</h2>
+    <label>{{ t.narrative_provider_label }}</label>
+    <select id="narrativeProvider" style="width:100%;background:var(--panel-2);border:1px solid var(--line);
+      color:var(--text);padding:0.45rem 0.55rem;border-radius:4px;font-size:0.9rem;
+      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+      <option value="claude">Claude</option>
+      <option value="chatgpt">ChatGPT</option>
+    </select>
+    <div style="display:flex;gap:0.6rem;margin-top:0.8rem;">
+      <button onclick="generateNarrative()" style="margin-top:0;">{{ t.narrative_generate }}</button>
+      <a href="#" class="btn secondary" style="margin-top:0;" onclick="return downloadNarrativePdf(this)">{{ t.narrative_download_pdf }}</a>
+    </div>
+    <div id="narrativeOut" style="margin-top:1rem;"></div>
+  </div>
+</main>
+
+<style>
+  .preset {
+    font-size: 0.75rem; color: var(--gold-dim); text-decoration: none;
+    border: 1px solid var(--line); padding: 0.25rem 0.6rem; border-radius: 12px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  .preset:hover { border-color: var(--gold); color: var(--gold); }
+  .analysis-col { border: 1px solid var(--line); border-radius: 6px; padding: 1rem; margin-top: 0.5rem; }
+  .analysis-col h3 {
+    margin: 0 0 0.6rem; font-size: 0.85rem; color: var(--gold);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  .analysis-col p { font-size: 0.88rem; white-space: pre-wrap; margin: 0; }
+  .analysis-error { color: var(--risk); font-size: 0.85rem; }
+  .analysis-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 800px) { .analysis-grid { grid-template-columns: 1fr; } }
+</style>
+
+<script>
+const LANG = "{{ lang }}";
+let T = {{ t | tojson }};
+
+function qs(id) { return document.getElementById(id).value; }
+
+// Always resolves to a JS object, whether the server sent proper JSON or,
+// on a gateway timeout/error, an HTML error page -- avoids "Unexpected
+// token '<'" crashes and lets callers show a real error message instead
+// of a permanently stuck loading indicator.
+async function safeFetchJson(url) {
+  const res = await fetch(url);
+  const raw = await res.text();
+  let data;
+  try {
+    data = JSON.parse(raw);
+  } catch (e) {
+    throw new Error('non_json_response');
+  }
+  if (!res.ok && !data.error) {
+    throw new Error(data.error || ('http_' + res.status));
+  }
+  return data;
+}
+
+function showError(elId) {
+  const el = document.getElementById(elId);
+  if (el) el.innerHTML = `<p class="analysis-error">${T.request_failed}</p>`;
+}
+
+function birthParams() {
+  const date = qs('birthDate').split('-');
+  const time = qs('birthTime').split(':');
+  return new URLSearchParams({
+    year: date[0], month: date[1], day: date[2],
+    hour: time[0], minute: time[1],
+    utc_offset: qs('utcOffset'), latitude: qs('lat'), longitude: qs('lon'),
+    months: qs('months'), lang: LANG,
+  });
+}
+
+async function runForecast() {
+  const params = birthParams();
+
+  document.getElementById('chartOut').textContent = 'Calculating...';
+  document.getElementById('dashaOut').textContent = 'Calculating...';
+  document.getElementById('forecastOut').textContent = 'Calculating...';
+
+  try {
+    const [natal, dasha, forecast] = await Promise.all([
+      safeFetchJson('/api/natal?' + params),
+      safeFetchJson('/api/dasha?' + params),
+      safeFetchJson('/api/forecast?' + params),
+    ]);
+    renderNatal(natal);
+    renderDasha(dasha);
+    renderForecast(forecast);
+  } catch (e) {
+    showError('chartOut');
+    showError('dashaOut');
+    showError('forecastOut');
+  }
+}
+
+function downloadPdf(el) {
+  const params = birthParams();
+  window.location.href = '/api/report/pdf?' + params;
+  return false;
+}
+
+function planetLabel(name) { return (T.planets && T.planets[name]) || name; }
+function signLabel(name) { return (T.signs && T.signs[name]) || name; }
+function areaLabel(name) { return (T.areas && T.areas[name]) || name; }
+
+function renderNatal(chart) {
+  const el = document.getElementById('chartOut');
+  el.innerHTML = '';
+  const asc = document.createElement('div');
+  asc.className = 'chart-row';
+  asc.innerHTML = `<span>${T.ascendant}</span><span>${signLabel(chart.ascendant.sign)} ${chart.ascendant.sign_deg.toFixed(2)}°</span>`;
+  el.appendChild(asc);
+  for (const [name, p] of Object.entries(chart.planets)) {
+    const row = document.createElement('div');
+    row.className = 'chart-row';
+    row.innerHTML = `<span>${planetLabel(name)}${p.retrograde ? ' (' + T.retrograde_short + ')' : ''}</span>
+      <span>${signLabel(p.sign)} ${p.sign_deg.toFixed(2)}° &middot; ${T.house} ${p.house} &middot; ${p.nakshatra}</span>`;
+    el.appendChild(row);
+  }
+}
+
+function renderDasha(d) {
+  const el = document.getElementById('dashaOut');
+  el.innerHTML = `<div class="chart-row"><span>${T.mahadasha}</span><span>${planetLabel(d.current_mahadasha)}</span></div>
+    <div class="chart-row"><span>${T.antardasha}</span><span>${planetLabel(d.current_antardasha)}</span></div>`;
+}
+
+function renderForecast(f) {
+  const el = document.getElementById('forecastOut');
+  const months = Object.keys(f.monthly_scores);
+  const areas = Object.keys(f.monthly_scores[months[0]]);
+  let html = '<table><thead><tr><th>' + T.area + '</th>';
+  months.forEach(m => html += `<th>${m}</th>`);
+  html += '</tr></thead><tbody>';
+  areas.forEach(area => {
+    html += `<tr><td>${areaLabel(area)}</td>`;
+    months.forEach(m => {
+      const score = f.monthly_scores[m][area];
+      html += `<td>${score}</td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+document.querySelectorAll('.preset').forEach(a => {
+  a.addEventListener('click', (e) => {
+    e.preventDefault();
+    document.getElementById('question').value = T[a.dataset.key];
+  });
+});
+
+function renderModelResult(container, label, result) {
+  const box = document.createElement('div');
+  box.className = 'analysis-col';
+  const h3 = document.createElement('h3');
+  h3.textContent = label + (result.model ? ' · ' + result.model : '');
+  box.appendChild(h3);
+  if (result.error) {
+    const p = document.createElement('p');
+    p.className = 'analysis-error';
+    p.textContent = result.error;
+    box.appendChild(p);
+  } else {
+    const p = document.createElement('p');
+    p.textContent = result.text;
+    box.appendChild(p);
+  }
+  container.appendChild(box);
+}
+
+async function askAnalysis() {
+  const out = document.getElementById('analysisOut');
+  out.innerHTML = '<div class="loading">…</div>';
+  const params = birthParams();
+  const q = qs('question').trim();
+  if (q) params.set('question', q);
+
+  try {
+    const res = await safeFetchJson('/api/analysis?' + params);
+    out.innerHTML = '';
+    const grid = document.createElement('div');
+    grid.className = 'analysis-grid';
+    renderModelResult(grid, `${T.primary_synthesis_label} — ${T.claude_label}`, res.primary);
+    renderModelResult(grid, `${T.verification_label} — ${T.chatgpt_label}`, res.verification);
+    out.appendChild(grid);
+  } catch (e) {
+    showError('analysisOut');
+  }
+}
+
+function narrativeParams() {
+  const params = birthParams();
+  params.set('provider', document.getElementById('narrativeProvider').value);
+  return params;
+}
+
+async function generateNarrative() {
+  const out = document.getElementById('narrativeOut');
+  out.innerHTML = '<div class="loading">…</div>';
+  let res;
+  try {
+    res = await safeFetchJson('/api/narrative?' + narrativeParams());
+  } catch (e) {
+    showError('narrativeOut');
+    return;
+  }
+
+  out.innerHTML = '';
+  if (res.error || !res.report) {
+    const p = document.createElement('p');
+    p.className = 'analysis-error';
+    p.textContent = res.error || 'No report returned.';
+    out.appendChild(p);
+    return;
+  }
+  const report = res.report;
+  const box = document.createElement('div');
+  box.className = 'analysis-col';
+
+  if (report.intro) {
+    const h = document.createElement('h3');
+    h.textContent = T.narrative_intro_label;
+    box.appendChild(h);
+    const p = document.createElement('p');
+    p.textContent = report.intro;
+    box.appendChild(p);
+  }
+
+  const sectionOrder = ['business', 'career', 'finance', 'relationships', 'general'];
+  sectionOrder.forEach(key => {
+    const entries = report.sections && report.sections[key];
+    if (!entries || !entries.length) return;
+    const h = document.createElement('h3');
+    h.textContent = T['section_' + key] || key;
+    box.appendChild(h);
+    entries.forEach(entry => {
+      const qh = document.createElement('div');
+      qh.style.fontWeight = '600';
+      qh.style.fontSize = '0.82rem';
+      qh.style.marginTop = '0.5rem';
+      qh.textContent = entry.quarter || '';
+      box.appendChild(qh);
+      const p = document.createElement('p');
+      p.textContent = entry.text || '';
+      box.appendChild(p);
+    });
+  });
+
+  if (report.practical_notes) {
+    const h = document.createElement('h3');
+    h.textContent = T.narrative_practical_notes;
+    box.appendChild(h);
+    const p = document.createElement('p');
+    p.textContent = report.practical_notes;
+    box.appendChild(p);
+  }
+
+  if (report.conclusion) {
+    const h = document.createElement('h3');
+    h.textContent = T.narrative_conclusion;
+    box.appendChild(h);
+    const p = document.createElement('p');
+    p.textContent = report.conclusion;
+    box.appendChild(p);
+  }
+
+  out.appendChild(box);
+}
+
+function downloadNarrativePdf(el) {
+  window.location.href = '/api/narrative/pdf?' + narrativeParams();
+  return false;
+}
+</script>
+</body>
+</html>
