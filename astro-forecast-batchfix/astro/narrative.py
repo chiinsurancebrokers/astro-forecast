@@ -19,6 +19,9 @@ prose.
 import json
 import os
 
+from .intelligence import format_natal_evidence
+from .source_guidance import get_source_guidance
+
 AREA_GROUPS = {
     "business": ["business", "external_money", "claims_settlements"],
     "career": ["career", "earned_income", "major_change"],
@@ -76,12 +79,14 @@ def _group_stats_line(areas, area_list):
 
 def _chart_and_dasha_lines(chart, dasha_info):
     asc = chart["ascendant"]
-    return [
+    lines = [
         f"Ascendant: {asc['sign']} {asc['sign_deg']:.2f} degrees.",
         f"Current Mahadasha: {dasha_info.get('current_mahadasha')}, "
         f"current Antardasha: {dasha_info.get('current_antardasha')}.",
         "All figures below are raw, uncalibrated 0-100 transit-activation scores.",
     ]
+    lines.extend(format_natal_evidence(chart, dasha_info).splitlines())
+    return lines
 
 
 def _quarters_block(quarters):
@@ -310,7 +315,11 @@ def build_narrative_report(provider, chart, dasha_info, monthly_scores, house_ev
     for batch in _batches(quarters, QUARTERS_PER_BATCH):
         context = build_batch_context(chart, dasha_info, batch, lang)
         raw, err, model_used = _call_provider(
-            provider, SECTIONS_SYSTEM_PROMPT.get(lang, SECTIONS_SYSTEM_PROMPT["en"]),
+            provider,
+            (
+                SECTIONS_SYSTEM_PROMPT.get(lang, SECTIONS_SYSTEM_PROMPT["en"])
+                + "\n\n" + get_source_guidance(lang)
+            ),
             f"DATA:\n{context}", SECTION_MAX_TOKENS,
         )
         if err:
@@ -324,7 +333,11 @@ def build_narrative_report(provider, chart, dasha_info, monthly_scores, house_ev
 
     overview_context = build_overview_context(chart, dasha_info, quarters, house_events, lang)
     raw, err, model_used = _call_provider(
-        provider, OVERVIEW_SYSTEM_PROMPT.get(lang, OVERVIEW_SYSTEM_PROMPT["en"]),
+        provider,
+        (
+            OVERVIEW_SYSTEM_PROMPT.get(lang, OVERVIEW_SYSTEM_PROMPT["en"])
+            + "\n\n" + get_source_guidance(lang)
+        ),
         f"DATA:\n{overview_context}", OVERVIEW_MAX_TOKENS,
     )
     if err:
