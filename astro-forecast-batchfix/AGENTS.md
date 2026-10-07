@@ -48,6 +48,25 @@ Uses the same birth parameters as the existing endpoints and accepts:
 
 The response contains every specialist's evidence, rules, notes and global guardrails.
 
+8. **Career Agent**
+   - Summarizes the 2nd, 6th, 10th and 11th house evidence and Ascendant ruler.
+   - Does not declare a guaranteed occupation or outcome.
+
+9. **Compatibility Agent**
+   - Compares selected cross-chart planetary aspects and placements.
+   - Notes birth-time uncertainty and avoids relationship outcome predictions.
+
+10. **GeoAstrology Agent**
+    - Compares natal and relocated whole-sign houses at supplied coordinates.
+    - Does not claim to calculate astrocartography lines.
+
+11. **Ask Agent**
+    - Routes a question to relevant evidence domains before synthesis.
+
+12. **Multi-model Predictive Timing Agent**
+    - Presents monthly transit, ingress, Vimshottari and calibration evidence.
+    - Reports availability and validation state; no probabilities are invented.
+
 ## Knowledge policy
 
 Historical source material is stored as compact paraphrased rules with provenance.
