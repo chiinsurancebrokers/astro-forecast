@@ -154,13 +154,13 @@
           <div class="timing-head"><div class="eyebrow">Timing intelligence</div><span class="status">Evidence-led</span></div>
           <h2>See the signals,<br>not just the stars.</h2>
           <p>Review monthly transit themes alongside Vimshottari periods. Every signal is labeled by method and calibration status.</p>
-          <div class="timing-foot"><span class="chip">Transits</span><span class="chip">Planetary periods</span><span class="chip">Source-aware</span></div>
+          <div class="timing-foot"><span class="chip">Transits</span><span class="chip">Planetary periods</span><span class="chip">Source-aware</span><button class="primary" onclick="runAgent('/api/agents/timing')">Open timing report ↗</button></div>
         </article>
         <div class="section-head" id="explore"><h2>Explore your chart</h2><a href="#chart">Set up birth details&nbsp; ↗</a></div>
-        <article class="card feature"><div class="icon">☉</div><h3>Natal intelligence</h3><p>Planet placements, dignity, aspects and house themes.</p><button onclick="document.querySelector('#chart').scrollIntoView({behavior:'smooth'})">Build natal chart&nbsp; ↗</button></article>
-        <article class="card feature"><div class="icon">♡</div><h3>Compatibility</h3><p>Compare two charts through selected synastry evidence.</p><button onclick="document.querySelector('#chart').scrollIntoView({behavior:'smooth'})">Compare charts&nbsp; ↗</button></article>
+        <article class="card feature"><div class="icon">☉</div><h3>Natal intelligence</h3><p>Planet placements, dignity, aspects and house themes.</p><button onclick="runAgent('/api/natal')">Build natal chart&nbsp; ↗</button></article>
+        <article class="card feature"><div class="icon">♡</div><h3>Compatibility</h3><p>Compare two charts through selected synastry evidence.</p><button onclick="compareCharts()">Compare charts&nbsp; ↗</button></article>
         <article class="card feature"><div class="icon">✧</div><h3>Career &amp; purpose</h3><p>Explore career-house placements and the chart ruler.</p><button onclick="runAgent('/api/agents/career')">Explore career&nbsp; ↗</button></article>
-        <article class="card feature"><div class="icon">⌖</div><h3>GeoAstrology</h3><p>Compare whole-sign house emphasis across locations.</p><button onclick="document.querySelector('#chart').scrollIntoView({behavior:'smooth'})">Explore a place&nbsp; ↗</button></article>
+        <article class="card feature"><div class="icon">⌖</div><h3>GeoAstrology</h3><p>Compare whole-sign house emphasis across locations.</p><button onclick="exploreGeo()">Explore a place&nbsp; ↗</button></article>
         <div class="bottom">
           <article class="card chart-form" id="chart">
             <div class="eyebrow">Begin with your birth details</div>
@@ -179,7 +179,7 @@
             <div class="eyebrow">Your evidence preview</div>
             <h2>Thoughtful, transparent guidance.</h2>
             <p>Astrology is used here as a reflective framework. Timing signals are not validated predictions.</p>
-            <div id="result" role="status" aria-live="polite">Your chart evidence will appear here when you generate a reading.</div>
+            <label>Ask about your chart<input id="question" type="text" placeholder="What themes should I focus on this year?"></label><div class="form-actions"><button class="primary" onclick="askChart()">Ask the chart ↗</button></div><div id="result" role="status" aria-live="polite">Choose an insight above or generate a reading to see chart evidence here.</div>
           </article>
         </div>
       </section>
@@ -198,23 +198,45 @@
       };
       return new URLSearchParams(values).toString();
     }
-    async function runAgent(path) {
+    async function runAgent(path, extra = {}) {
       const out = document.querySelector('#result');
       out.textContent = 'Reading the chart evidence…';
       try {
-        const response = await fetch(path + '?' + birthQuery());
+        const query = new URLSearchParams({...Object.fromEntries(new URLSearchParams(birthQuery())), ...extra});
+        const response = await fetch(path + '?' + query.toString());
         const body = await response.json();
         if (!response.ok) throw new Error(body.error || 'The request could not be completed.');
-        if (body.agents) {
-          out.textContent = body.agents.map(agent =>
-            agent.agent + ': ' + agent.evidence.length + ' evidence points'
-          ).join('\n') + '\n\n' + (body.guardrails?.forecasting || '');
-        } else {
-          out.textContent = JSON.stringify(body, null, 2);
-        }
+        out.textContent = formatEvidence(body);
       } catch (error) {
         out.textContent = error.message;
       }
+    }
+    function formatEvidence(body) {
+      if (body.planets && body.ascendant) {
+        const lines = ['Natal chart · Ascendant: ' + body.ascendant.sign + ' ' + Number(body.ascendant.degree).toFixed(1) + '°'];
+        for (const [name, p] of Object.entries(body.planets)) lines.push(name + ': ' + p.sign + ' ' + Number(p.degree).toFixed(1) + '° · house ' + p.house);
+        return lines.join('\n');
+      }
+      if (body.agents) return body.agents.map(agent => agent.agent + ': ' + agent.evidence.length + ' evidence points').join('\n') + '\n\n' + (body.guardrails?.forecasting || '');
+      if (body.evidence) return (body.agent || body.title || 'Chart insight') + '\n' + body.evidence.map(item => '• ' + (item.statement || item.description || JSON.stringify(item))).join('\n');
+      return JSON.stringify(body, null, 2);
+    }
+    function compareCharts() {
+      const date = prompt('Second chart birth date (YYYY-MM-DD):'); if (!date) return;
+      const parts = date.split('-').map(Number);
+      if (parts.length !== 3 || parts.some(Number.isNaN)) { alert('Enter the date as YYYY-MM-DD.'); return; }
+      runAgent('/api/agents/compatibility', {b_year:parts[0], b_month:parts[1], b_day:parts[2]});
+    }
+    function exploreGeo() {
+      const coords = prompt('Location coordinates (latitude, longitude), e.g. 40.7128, -74.0060:'); if (!coords) return;
+      const parts = coords.split(',').map(Number);
+      if (parts.length !== 2 || parts.some(Number.isNaN)) { alert('Enter latitude and longitude separated by a comma.'); return; }
+      runAgent('/api/agents/geo', {target_latitude:parts[0], target_longitude:parts[1]});
+    }
+    function askChart() {
+      const question = document.querySelector('#question').value.trim();
+      if (!question) { document.querySelector('#question').focus(); return; }
+      runAgent('/api/agents/ask', {question});
     }
   </script>
 </body>
