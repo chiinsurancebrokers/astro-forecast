@@ -149,8 +149,10 @@ create table if not exists public.book_knowledge_rules (
                       'HERMETIC_HISTORICAL'))
 );
 
-create index if not exists book_knowledge_rules_system_topics_idx
-    on public.book_knowledge_rules using gin (system, topics);
+create index if not exists book_knowledge_rules_system_idx
+    on public.book_knowledge_rules (system);
+create index if not exists book_knowledge_rules_topics_idx
+    on public.book_knowledge_rules using gin (topics);
 
 -- Raw source chunks are private to the backend's service role.
 -- Only short, reviewed paraphrases belong in book_knowledge_rules.
