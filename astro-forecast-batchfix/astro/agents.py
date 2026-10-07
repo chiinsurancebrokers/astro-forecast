@@ -155,7 +155,7 @@ class TransitAgent:
             evidence.append({
                 "type": "monthly_activation",
                 "month": month,
-                "top": [{"area": a, "score": s} for a, s in ranked[:5]],
+                "top": [{"area": a, "score": s} for a, s in ranked[:5]],\n                "scores": areas,
             })
         evidence.extend({"type": "slow_planet_sign_change", **ev} for ev in changes)
         return AgentResult(
@@ -292,9 +292,9 @@ class AstrologyOrchestrator:
             CareerAgent().run(chart),
         ]
         monthly_scores = {
-            item["month"]: {
+            item["month"]: item.get("scores", {
                 signal["area"]: signal["score"] for signal in item.get("top", [])
-            }
+            })
             for item in transit_result.evidence
             if item.get("type") == "monthly_activation"
         }
