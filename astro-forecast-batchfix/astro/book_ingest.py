@@ -18,8 +18,10 @@ from .book_corpus import SOURCES
 
 WORD_RE = re.compile(r"\S+")
 TAG_PATTERNS = {
-    "planets": r"\b(planets?|sun|moon|mercury|venus|mars|jupiter|saturn|uranus|neptune)\b",
+    "planets": r"\b(planets?|planetary|sun|moon|mercury|venus|mars|jupiter|saturn|uranus|neptune)\b",
     "signs": r"\b(zodiac|signs?|aries|taurus|gemini|cancer|leo|virgo|libra|scorpio|sagittarius|capricorn|aquarius|pisces)\b",
+    "motion": r"\b(motion|retrograde|stationary|heliocentric)\b",
+    "number": r"\b(number|numerical|arithmetic|measure)\b",
     "houses": r"\b(houses?|ascendant|midheaven|rising sign|mundane)\b",
     "aspects": r"\b(aspects?|conjunction|sextile|square|trine|opposition|orb)\b",
     "dignities": r"\b(dignit(y|ies)|rulership|exaltation|detriment|fall)\b",
