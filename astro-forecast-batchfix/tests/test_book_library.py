@@ -1,4 +1,7 @@
+import json
+import tempfile
 import unittest
+from pathlib import Path
 
 from astro.book_agent import BookKnowledgeAgent
 from astro.book_library import BookKnowledgeLibrary
@@ -49,6 +52,55 @@ class BookKnowledgeLibraryTests(unittest.TestCase):
         self.assertLessEqual(len(self.library.search(limit=500)), 50)
         self.assertLessEqual(len(self.library.search(limit=2)), 2)
         self.assertEqual(len(self.library.search(limit=0)), 1)
+
+    def test_private_curated_rules_join_agent_retrieval(self):
+        rule = {
+            "id": "raleigh.test.motion",
+            "source": "raleigh_hermetic",
+            "system": "HERMETIC_HISTORICAL",
+            "topics": ["motion", "number"],
+            "locator": "pages 4-5",
+            "summary": "The text treats motion and number as connected historical principles.",
+            "keywords": ["motion", "number"],
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "rules.jsonl"
+            path.write_text(json.dumps(rule) + "\n", encoding="utf-8")
+            library = BookKnowledgeLibrary(rules_path=path)
+            hits = library.search(
+                query="motion", source_ids=["raleigh_hermetic"]
+            )
+        self.assertEqual([hit.id for hit in hits], ["raleigh.test.motion"])
+        self.assertEqual(hits[0].system, "HERMETIC_HISTORICAL")
+
+    def test_private_curated_rules_reject_raw_text_and_system_mismatch(self):
+        cases = [
+            {
+                "id": "raleigh.test.raw",
+                "source": "raleigh_hermetic",
+                "system": "HERMETIC_HISTORICAL",
+                "topics": ["motion"],
+                "locator": "page 4",
+                "summary": "A concise paraphrase of the historical source material.",
+                "keywords": ["motion"],
+                "text": "Raw source text must not enter agent-facing rules.",
+            },
+            {
+                "id": "raleigh.test.mixed",
+                "source": "raleigh_hermetic",
+                "system": "WESTERN_TRADITIONAL",
+                "topics": ["motion"],
+                "locator": "page 4",
+                "summary": "A concise paraphrase of the historical source material.",
+                "keywords": ["motion"],
+            },
+        ]
+        for rule in cases:
+            with self.subTest(rule=rule["id"]), tempfile.TemporaryDirectory() as directory:
+                path = Path(directory) / "rules.jsonl"
+                path.write_text(json.dumps(rule) + "\n", encoding="utf-8")
+                with self.assertRaises(ValueError):
+                    BookKnowledgeLibrary(rules_path=path)
 
 
 if __name__ == "__main__":
