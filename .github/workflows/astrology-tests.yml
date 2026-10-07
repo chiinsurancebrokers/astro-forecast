@@ -6,10 +6,12 @@ on:
       - feature/astrology-agents-v2
     paths:
       - "astro-forecast-batchfix/**"
+      - "supabase/**"
       - ".github/workflows/astrology-tests.yml"
   pull_request:
     paths:
       - "astro-forecast-batchfix/**"
+      - "supabase/**"
       - ".github/workflows/astrology-tests.yml"
 
 permissions:
