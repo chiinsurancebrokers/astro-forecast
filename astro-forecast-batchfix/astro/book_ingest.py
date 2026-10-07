@@ -288,19 +288,25 @@ def validate_curated_rules(path: Path) -> list[str]:
                 errors.append(f"line {line_number}: duplicate id {rule_id}")
             else:
                 seen_ids.add(rule_id)
-            source = SOURCES.get(item.get("source"))
-            if source is None:
-                errors.append(f"line {line_number}: unknown source {item.get('source')}")
-            elif item.get("system") != source.get("system"):
-                errors.append(f"line {line_number}: system does not match source {item['source']}")
-            if not isinstance(item["topics"], list) or not item["topics"]:
-                errors.append(f"line {line_number}: topics must be a non-empty list")
+            source_id = item.get("source")
+            if not isinstance(source_id, str):
+                errors.append(f"line {line_number}: source must be a string")
+            else:
+                source = SOURCES.get(source_id)
+                if source is None:
+                    errors.append(f"line {line_number}: unknown source {source_id}")
+                elif item.get("system") != source.get("system"):
+                    errors.append(f"line {line_number}: system does not match source {source_id}")
+            if (not isinstance(item["topics"], list) or not item["topics"]
+                    or not all(isinstance(topic, str) and topic.strip() for topic in item["topics"])):
+                errors.append(f"line {line_number}: topics must be a non-empty list of strings")
             if not isinstance(item["locator"], str) or not item["locator"].strip():
                 errors.append(f"line {line_number}: locator must identify a page or chapter")
             if not isinstance(item["summary"], str) or not 20 <= len(item["summary"]) <= 600:
                 errors.append(f"line {line_number}: summary must be a concise 20-600 character paraphrase")
-            if not isinstance(item["keywords"], list):
-                errors.append(f"line {line_number}: keywords must be a list")
+            if (not isinstance(item["keywords"], list)
+                    or not all(isinstance(keyword, str) for keyword in item["keywords"])):
+                errors.append(f"line {line_number}: keywords must be a list of strings")
     return errors
 
 
