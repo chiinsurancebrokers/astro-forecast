@@ -63,7 +63,7 @@ def _chapter(name,key,start,end,planets,revisited):
     natal_theme,_ = SIGN_TRAITS[name][SIGNS.index(natal['sign'])]
     present = [p for p,v in planets.items() if v['house']==house]
     paragraphs = [
-      f"This dated chapter places {name} in {sign}, passing through your natal house {house}. The area to examine is {topic}. The date marks a calculated change of house; it does not establish that a life event will occur.",
+      f"This dated chapter places {name} in {sign}, passing through your natal house {house}. The area to examine is {topic}. Changes between chapters mark calculated house boundaries; they do not establish that a life event will occur.",
       f"Your natal {name} is in {natal['sign']}, house {natal['house']}. White’s descriptive themes there include {natal_theme}. Read the current chapter through that birth-chart context, rather than treating a passing planet as a separate prediction.",
     ]
     if present:
@@ -88,6 +88,7 @@ def build_life_period_report(lahiri_chart, western_chart, birth_dt, start, cite,
     planets = western_chart['planets']
     chapters = transit_chapters(start,end,western_chart['ascendant']['sign'],planets)
     for chapter in chapters:
+        chapter['start_is_report_boundary'] = chapter['start']==_date(start)
         chapter['end_is_horizon'] = chapter['end']==_date(end)
     for name in ['Jupiter','Saturn']:
         previous = None
