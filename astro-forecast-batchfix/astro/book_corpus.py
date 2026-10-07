@@ -65,6 +65,15 @@ SOURCES = {
             "radix judgment", "character", "employment", "location",
         ],
     },
+    "raleigh_hermetic": {
+        "title": "Hermetic Science of Motion and Number",
+        "author": "A. S. Raleigh",
+        "system": "HERMETIC_HISTORICAL",
+        "coverage": [
+            "hermetic philosophy", "motion", "number", "cosmology",
+            "symbolic correspondences", "historical esotericism",
+        ],
+    },
 }
 
 ENTRIES = [
