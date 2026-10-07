@@ -102,8 +102,79 @@ def build_book_natal_report(chart, latitude=None, longitude=None):
                          'interpretation': meaning + ' This is the author’s historical classification, not a forecast of an event.',
                          'reflection': 'This report does not yet apply the author’s detailed planet-pair delineation.',
                          'citations': [citation('raphael_guide', 10, 6, 'Of the Nature of the Aspects')]})
-    return {'version': 1, 'basis': 'Western tropical, geocentric planetary positions',
+    return {'version': 2, 'basis': 'Western tropical, geocentric planetary positions',
             'basis_note': 'The main wheel uses the tropical zodiac with whole-sign houses as a platform display choice. Lahiri is available as a separate specialist view. House-specific book interpretations have not been applied. Aspect selection uses a platform limit of 5°, not Raphael’s complete orb tables.',
             'planets': planets, 'chart': tropical_chart, 'sections': sections,
+            'reading': synthesize_natal_reading(planets, aspects, index),
             'coverage': 'Verified Sun passages for all twelve signs, natal reading method and major-aspect classifications from White and Raphael. Detailed Moon, Ascendant, house and planet-pair delineations are not yet curated.',
             'other_books': 'Karma, Merton, Daath and Raleigh remain in the knowledge catalog but are not cited in this report. Heliocentric, medical and Hermetic material require separate interpretation methods.'}
+
+
+def synthesize_natal_reading(planets, aspects, sun_index):
+    """Editorial synthesis of verified passages, with explicit internal provenance.
+
+    Match exact planet pairs before applying a delineation. Practical guidance is
+    editorial and never attributed verbatim to the historical authors.
+    """
+    sun_sign = planets['Sun']['sign']
+    text = SUN_READINGS[sun_sign]
+    replacements = {
+        'White associates this placement with': 'Your central pattern brings together',
+        'White emphasizes': 'Your central pattern emphasizes',
+        'White describes': 'Your central pattern combines',
+        'White links this placement with': 'Your central pattern brings together',
+        'White combines': 'Your central pattern combines',
+        'He also describes': 'There is also a theme of',
+        'He stresses': 'This places emphasis on',
+        'He describes': 'Alongside this is a theme of',
+        'He connects this placement with': 'This is accompanied by',
+        'His counterpoint is': 'The corresponding challenge is',
+        'His account combines': 'This combines',
+        'His account contrasts': 'This contrasts',
+        'His contrasting themes are': 'The balancing themes are',
+    }
+    for old, new in replacements.items():
+        text = text.replace(old, new)
+    sections = [{'title': 'The central pattern of your life', 'paragraphs': [
+        f"With your Sun in {sun_sign}, the natal reading begins with the way you develop a sense of direction and express your individuality. " + text,
+        'These qualities become meaningful through the choices you make. The rest of this reading considers the combinations that reinforce or complicate this central pattern, rather than treating your Sun sign as a complete description of you.'
+    ], 'citations': [citation('white_guide', sun_index+8, sun_index+2, sun_sign)]}]
+    matches = {(frozenset([a['a'], a['b']]), a['aspect']): a for a in aspects}
+    # These are conservative paraphrases of the specific passages checked in the
+    # uploaded Raphael scan; no house claim is imported from a different system.
+    rules = [
+        ('Sun', 'Mercury', {'conjunction'}, 'How you think and find your direction', 64, 60,
+         'Your identity and your thinking are closely connected. This combination brings the themes of learning, comprehension and ambition into the same part of the reading. You may find your direction through understanding a subject thoroughly, communicating it or putting knowledge to practical use.',
+         'A useful way to work with this pattern is to give your ideas both expression and space for reconsideration. Intellectual confidence is most productive when it remains open to another perspective.'),
+        ('Venus', 'Saturn', {'trine','sextile'}, 'What gives relationships substance', 54, 50,
+         'The relationship pattern contains a theme of steadiness: attachment is supported by care, perseverance and attention to feelings. This adds substance to affection and suggests that consistency may matter as much as the first excitement of a connection.',
+         'In practice, the constructive expression of this pattern is reliability that remains warm. Making time, keeping commitments and showing care in ordinary circumstances can give a relationship room to deepen.'),
+        ('Venus', 'Mars', {'trine','sextile'}, 'Affection, attraction and social life', 61, 57,
+         'There is also a more sociable and expressive thread in the relationship pattern. Affection and the desire to engage with others can work together, bringing an appreciation of company, attraction and shared enjoyment.',
+         'Read together with the other relationship factors, this describes a capacity for connection rather than a promise about a particular partner. It is worth giving both companionship and personal desire an honest place in your relationships.'),
+        ('Moon', 'Jupiter', {'conjunction','trine','sextile'}, 'Support, confidence and emotional security', 58, 54,
+         'The Moon and Jupiter add a supportive thread to the reading. In the bibliography this combination is associated with favorable conditions for partnership, prosperity and prudent conduct. Read as a natal theme, it points toward the value of supportive relationships and thoughtful judgment when building a secure life.',
+         'The practical emphasis is to recognize and cultivate sources of support. Encouragement is most useful when it is accompanied by decisions you have considered carefully.'),
+    ]
+    for a,b,kinds,title,page,printed,interpretation,guidance in rules:
+        found = next((matches[(frozenset([a,b]),kind)] for kind in sorted(kinds) if (frozenset([a,b]),kind) in matches), None)
+        if found:
+            sections.append({'title': title, 'paragraphs': [interpretation, guidance],
+                             'evidence': found,
+                             'citations': [citation('raphael_guide',page,printed, 'Conjunctions and Aspects of ' + {64:'Sun',54:'Saturn',61:'Mars',58:'Jupiter'}[page])]})
+    if planets['Mercury']['sign'] == 'Aquarius':
+        sections.append({'title':'A mind drawn to understanding', 'paragraphs':[
+            'Mercury in Aquarius develops the intellectual theme further. The source describes an interest in study, scientific subjects, observation and reasoning, together with an appreciation of solitude or learned company. You may therefore recognize a need to understand things for yourself before accepting an explanation.',
+            'A constructive expression is to turn observation into knowledge you can use and share. Time to think independently can serve your wider relationships and work when it leads back into clear communication.'
+        ], 'citations':[citation('white_guide',39,33,'Mercury in Aquarius')]})
+    sections.append({'title':'Bringing the reading together','paragraphs':[
+        'The overall picture should be read as a pattern of capacities and tensions, not a fixed script. Start with the central motivation described above, then consider how the intellectual, relational and supportive combinations fit your lived experience. Where two themes differ, the task is to find a way for both to be expressed rather than allowing one to dominate.',
+        'This is a natal reading of enduring themes. A forecast for a specific period requires a separate timing analysis tied to dates; the birth chart alone does not establish when a development will occur.'
+    ],'citations':[citation('raphael_guide',76,72,'How to Judge a Nativity'),citation('white_guide',46,40,'The Radix')]})
+    references = []
+    for section in sections:
+        for c in section['citations']:
+            if c not in references:
+                references.append(c)
+    return {'sections': sections, 'references': references,
+            'method': 'Source-based editorial synthesis. The first paragraph of each interpretive section paraphrases matched historical material; practical guidance is an editorial application. Historical claims of guaranteed events, illness or moral character are excluded. Only verified passages are used; this is not yet an exhaustive reading of every placement.'}

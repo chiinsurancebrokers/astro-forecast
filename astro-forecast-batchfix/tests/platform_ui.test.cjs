@@ -21,3 +21,9 @@ for(const [key,value] of Object.entries({year:'1975',month:'2',day:'8',hour:'11'
 let captured;sandbox.fetch=async url=>{captured=url;return {ok:true,json:async()=>chart};};
 (async()=>{await evaluate("runAgent('/api/natal')");assert(element('#reading-dialog').open);assert(element('#report-content').innerHTML.includes('<svg'));assert(captured.includes('/api/natal?'));assert(element('#result').innerHTML.includes('Open reading'));element('#day').value='30';let rejected=false;try{evaluate('birthValues()')}catch{rejected=true;}assert(rejected);console.log('7 report rendering and interaction checks passed.');})().catch(err=>{console.error(err);process.exitCode=1;});
 
+
+sandbox.bookReport={reading:{sections:[{title:'A coherent reading',paragraphs:['<script>unsafe</script>','Your narrative.']}],references:[{author:'Author',title:'Book',chapter:'Chapter',printed_page:12,pdf_page:18}],method:'Editorial synthesis'},basis_note:'Tropical basis',coverage:'Verified coverage',other_books:'Other methods'};
+const bookHtml=evaluate('renderBookReport(bookReport)');
+assert(bookHtml.indexOf('Your narrative.') < bookHtml.indexOf('Bibliography and interpretation notes'));
+assert(!bookHtml.includes('<script>'));assert(bookHtml.includes('&lt;script&gt;'));
+assert(bookHtml.includes('printed p. 12 / PDF p. 18'));

@@ -24,3 +24,18 @@ class BookNatalTests(unittest.TestCase):
         report = build_book_natal_report({'julian_day':2451545.0})
         self.assertIsNone(report['chart'])
         self.assertNotIn('house', report['planets']['Moon'])
+
+
+class NarrativeSynthesisTests(unittest.TestCase):
+    def test_only_matched_combinations_are_interpreted(self):
+        from astro.natal_books import synthesize_natal_reading
+        planets = {'Sun': {'sign': 'Aquarius'}, 'Mercury': {'sign': 'Aquarius'}}
+        aspects = [{'a':'Sun','b':'Mercury','aspect':'conjunction','orb':0.06},
+                   {'a':'Venus','b':'Saturn','aspect':'square','orb':1.0}]
+        reading = synthesize_natal_reading(planets, aspects, 10)
+        titles = [s['title'] for s in reading['sections']]
+        self.assertIn('How you think and find your direction', titles)
+        self.assertNotIn('What gives relationships substance', titles)
+        self.assertTrue(any(c['pdf_page']==64 for c in reading['references']))
+        self.assertFalse(any(c['pdf_page']==54 for c in reading['references']))
+        self.assertEqual(len(reading['references']), len({(c['source_id'],c['pdf_page'],c['chapter']) for c in reading['references']}))

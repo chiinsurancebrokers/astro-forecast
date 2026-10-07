@@ -265,7 +265,12 @@
     function renderLahiri(chart) {return '<details class="report-section"><summary>Lahiri · specialist zodiac analysis</summary>'+renderNatal(chart)+'<p class="report-note">Sidereal Lahiri positions and nakshatras. The Western book passages above are not applied to these sign placements.</p></details>';}
     function renderBookReport(report) {
       if(!report)return '';
-      return (report.chart?renderNatal(report.chart):'')+section('Your natal report · from your books','<p><strong>'+esc(report.basis)+'</strong></p><p>'+esc(report.basis_note)+'</p>')+report.sections.map(item=>section(item.title,'<p><strong>'+esc(item.fact)+'</strong></p><p>'+esc(item.interpretation)+'</p><p>'+esc(item.reflection)+'</p>'+item.citations.map(c=>'<p class="report-note">Source: '+esc(c.author)+' · '+esc(c.title)+' · '+esc(c.chapter)+' · printed p. '+esc(c.printed_page)+' / PDF p. '+esc(c.pdf_page)+' · paraphrase</p>').join(''))).join('')+section('Book coverage','<p>'+esc(report.coverage)+'</p><p>'+esc(report.other_books)+'</p>');
+      if(!report.reading)return section('Reading unavailable','<p>The narrative could not be prepared. Please try again.</p>');
+      const narrative=report.reading.sections.map(item=>section(item.title,item.paragraphs.map(p=>'<p>'+esc(p)+'</p>').join(''))).join('');
+      const references=report.reading.references.map(c=>'<li>'+esc(c.author)+' · <em>'+esc(c.title)+'</em> · '+esc(c.chapter)+' · printed p. '+esc(c.printed_page)+' / PDF p. '+esc(c.pdf_page)+'</li>').join('');
+      return section('Your natal reading','<p class="report-note">Western tropical astrology · A reading of your underlying life themes</p>')+narrative+
+        '<details class="report-section"><summary>View your chart and calculation details</summary>'+(report.chart?renderNatal(report.chart):'')+'<p>'+esc(report.basis_note)+'</p></details>'+
+        section('Bibliography and interpretation notes','<ol>'+references+'</ol><p class="report-note">'+esc(report.reading.method)+'</p><details><summary>Current source coverage</summary><p>'+esc(report.coverage)+'</p><p>'+esc(report.other_books)+'</p></details>');
     }
     function renderAgent(agent) {
       const evidence=agent.evidence||[], rows=[];
