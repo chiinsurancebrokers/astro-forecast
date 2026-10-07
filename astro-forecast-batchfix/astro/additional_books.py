@@ -14,8 +14,8 @@ MERCURY = {
 
 def additional_natal_sections(planets, cite):
     sections=[]
-    mercury=planets['Mercury']
-    if mercury['sign'] in MERCURY:
+    mercury=planets.get('Mercury',{})
+    if mercury.get('sign') in MERCURY:
         themes,page,printed=MERCURY[mercury['sign']]
         sections.append({'title':'How to develop your thinking and communication',
           'paragraphs':[f"Your Mercury is in {mercury['sign']}. Pontin’s description connects this placement with {themes}. Read alongside the other planets and houses, this offers a way to examine how you learn, explain an idea and respond to another person’s viewpoint.",
@@ -28,7 +28,9 @@ def additional_natal_sections(planets, cite):
     return sections
 
 def esoteric_sections(planets,cite):
-    saturn=planets['Saturn']
+    saturn=planets.get('Saturn')
+    if not saturn:
+        return []
     ref=cite('leo_esoteric',48,26,'Spheres of Influence: Saturn')
     ref['system']='ESOTERIC_HISTORICAL'
     return [{'title':'Alan Leo · responsibility and inner development',

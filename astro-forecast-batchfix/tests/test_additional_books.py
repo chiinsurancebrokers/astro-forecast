@@ -17,6 +17,8 @@ class AdditionalBooksTests(unittest.TestCase):
         self.assertEqual(sections[0]['citations'][0]['source_id'],'bart_success')
 
     def test_esoteric_method_and_catalog_provenance(self):
+        self.assertEqual(esoteric_sections({},cite),[])
+        self.assertEqual(len(additional_natal_sections({},cite)),1)
         section=esoteric_sections({'Saturn':{'sign':'Cancer','house':3}},cite)[0]
         self.assertEqual(section['citations'][0]['system'],'ESOTERIC_HISTORICAL')
         self.assertIn('not a sign-specific',section['paragraphs'][1])
