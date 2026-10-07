@@ -156,6 +156,33 @@ git remote add origin https://github.com/<your-username>/<repo-name>.git
 git push -u origin main
 ```
 
+## Premium platform preview
+
+The new, isolated dashboard is available at `/platform`. The existing home page
+at `/` remains unchanged. The preview connects to natal and career evidence APIs;
+account persistence, Supabase Auth/RLS wiring, and Stripe checkout remain follow-on
+integration work.
+
+## Specialist agent APIs
+
+- `GET /api/agents/analyze`: orchestrated natal, timing, transit, knowledge,
+  career and evidence-routing output.
+- `GET /api/agents/compatibility`: compares the primary chart with the second
+  chart supplied through `b_year`, `b_month`, `b_day` and optional `b_*`
+  birth parameters.
+- `GET /api/agents/career`: summarizes selected career-house and Ascendant-ruler
+  evidence.
+- `GET /api/agents/geo`: compares natal and relocated whole-sign houses using
+  `target_latitude` and `target_longitude`.
+- `GET /api/agents/ask`: routes a question to evidence domains and uses the
+  existing model-grounded synthesis.
+- `GET /api/agents/timing`: returns monthly transit, ingress and Vimshottari
+  evidence with validation disclosures.
+
+The timing ensemble does not produce probabilities or validated predictions.
+GeoAstrology compares chart placements at a supplied location; it does not yet
+compute astrocartography line paths.
+
 ## Book Knowledge ingestion
 
 The source catalog distinguishes Western traditional astrology, heliocentric
