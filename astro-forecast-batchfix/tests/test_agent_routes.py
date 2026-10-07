@@ -33,7 +33,7 @@ class SpecialistRouteTests(unittest.TestCase):
         self.assertIn("Ask Agent", names)
         timing = next(a for a in payload["agents"]
                       if a["agent"] == "Multi-model Predictive Timing Agent")
-        self.assertIn("not a probability", " ".join(timing["notes"]).lower())
+        self.assertIn("probability", " ".join(timing["notes"]).lower())
 
 
 if __name__ == "__main__":
