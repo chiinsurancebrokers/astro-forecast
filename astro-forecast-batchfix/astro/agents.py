@@ -270,7 +270,7 @@ class AstrologyOrchestrator:
         self.synthesis = SynthesisAgent()
 
     def run(self, chart, birth_dt, latitude, longitude, start, months=24,
-            question="", outcomes=None, at_dt=None, second_chart=None, geo_location=None):
+            question="", outcomes=None, at_dt=None, second_chart=None, geo_location=None, utc_offset=0):
         at_dt = at_dt or datetime.now()
         from .specialist_agents import (
             AskAgent, CareerAgent, CompatibilityAgent, GeoAstrologyAgent,
@@ -319,7 +319,7 @@ class AstrologyOrchestrator:
             geo_birth = {
                 "year": birth_dt.year, "month": birth_dt.month, "day": birth_dt.day,
                 "hour": birth_dt.hour, "minute": birth_dt.minute,
-                "utc_offset": 0, "chart": chart,
+                "utc_offset": utc_offset, "chart": chart,
             }
             specialists.append(GeoAstrologyAgent().run(
                 geo_birth, geo_location["latitude"], geo_location["longitude"],
