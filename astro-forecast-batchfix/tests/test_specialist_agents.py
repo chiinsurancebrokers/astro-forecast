@@ -29,7 +29,7 @@ def chart(asc="Aries", offset=0):
 
 class SpecialistAgentTests(unittest.TestCase):
     def test_compatibility_reports_cross_chart_evidence(self):
-        report = CompatibilityAgent().run(chart(), chart(offset=12)).to_dict()
+        report = CompatibilityAgent().run(chart(), chart(offset=5)).to_dict()
         self.assertEqual(report["agent"], "Compatibility Agent")
         self.assertTrue(any(x["type"] == "placement_pair" for x in report["evidence"]))
         self.assertTrue(any(x["type"] == "cross_chart_aspect" for x in report["evidence"]))
