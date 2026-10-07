@@ -183,6 +183,13 @@
         <article class="card feature"><div class="icon">♡</div><h3>Compatibility</h3><p>Compare two charts through selected synastry evidence.</p><button onclick="compareCharts()">Compare charts&nbsp; ↗</button></article>
         <article class="card feature"><div class="icon">✧</div><h3>Career &amp; purpose</h3><p>Explore career-house placements and the chart ruler.</p><button onclick="runAgent('/api/agents/career')">Explore career&nbsp; ↗</button></article>
         <article class="card feature"><div class="icon">⌖</div><h3>GeoAstrology</h3><p>Compare whole-sign house emphasis across locations.</p><button onclick="exploreGeo()">Explore a place&nbsp; ↗</button></article>
+        <div class="section-head"><h2>Deeper perspectives from your library</h2></div>
+        <article class="card feature"><div class="icon">☼</div><h3>Merton</h3><p>Explore a calculated Sun-centred chart and its historical symbolism.</p><button onclick="runAgent('/api/agents/historical',{specialist:'merton'})">Open heliocentric reading ↗</button></article>
+        <article class="card feature"><div class="icon">◈</div><h3>Daath</h3><p>Understand how planetary condition is read in context.</p><button onclick="runAgent('/api/agents/historical',{specialist:'daath'})">Open method study ↗</button></article>
+        <article class="card feature"><div class="icon">✦</div><h3>Raleigh</h3><p>A Hermetic reflection guide about rhythm and change.</p><button onclick="runAgent('/api/agents/historical',{specialist:'raleigh'})">Open reflection guide ↗</button></article>
+        <div class="section-head"><h2>Choose your depth</h2><span>Plan preview</span></div>
+        <article class="card feature"><h3>Free</h3><p>Your core Western natal reading, chart and bibliography.</p><button onclick="runAgent('/api/natal')">Start with your natal reading ↗</button></article>
+        <article class="card feature"><h3>Plus</h3><p>Deeper specialist perspectives, compatibility, career, locations and timing.</p><p class="report-note">Pricing to be set. All implemented tools are open for this staging preview; paid access is not active.</p><button onclick="runAgent('/api/agents/historical')">Explore the Plus preview ↗</button></article>
         <div class="bottom">
           <article class="card chart-form" id="chart">
             <div class="eyebrow">Begin with your birth details</div>
@@ -263,6 +270,12 @@
       return section(chart.zodiac==='Tropical'?'Your Western natal chart':'Lahiri specialist chart',chartWheel(chart)+overview)+section('Planet placements',planets)+(aspects.length?section('Major aspects',list(aspects.map(i=>i.planets.join(' and ')+' form a '+i.aspect+' with an orb of '+i.orb+'°.'))):'');
     }
     function renderLahiri(chart) {return '<details class="report-section"><summary>Lahiri · specialist zodiac analysis</summary>'+renderNatal(chart)+'<p class="report-note">Sidereal Lahiri positions and nakshatras. The Western book passages above are not applied to these sign placements.</p></details>';}
+    function renderHistorical(reports) {
+      return reports.map(r=>section(r.title,'<p class="report-note">'+esc(r.basis)+'</p>'+r.paragraphs.map(p=>'<p>'+esc(p)+'</p>').join('')+'<details><summary>Method and current coverage</summary><p>'+esc(r.scope)+'</p>'+(r.id==='merton'?list(Object.entries(r.evidence).map(([name,p])=>name+' · '+p.sign+' '+Number(p.degree).toFixed(1)+'°')):'')+'</details>')).join('');
+    }
+    function renderHistoricalBibliography(reports) {
+      return section('Specialist bibliography','<ol>'+reports.flatMap(r=>r.references).map(c=>'<li>'+esc(c.author)+' · <em>'+esc(c.title)+'</em> · '+esc(c.chapter)+' · printed p. '+esc(c.printed_page)+' / PDF p. '+esc(c.pdf_page)+'</li>').join('')+'</ol>');
+    }
     function renderBookReport(report, specialist='') {
       if(!report)return '';
       if(!report.reading)return section('Reading unavailable','<p>The narrative could not be prepared. Please try again.</p>');
@@ -270,7 +283,7 @@
       const references=report.reading.references.map(c=>'<li>'+esc(c.author)+' · <em>'+esc(c.title)+'</em> · '+esc(c.chapter)+' · printed p. '+esc(c.printed_page)+' / PDF p. '+esc(c.pdf_page)+'</li>').join('');
       return section('Your natal reading','<p class="report-note">Western tropical astrology · A reading of your underlying life themes</p>')+narrative+
         '<details class="report-section"><summary>View your chart and calculation details</summary>'+(report.chart?renderNatal(report.chart):'')+'<p>'+esc(report.basis_note)+'</p></details>'+
-        specialist+section('Bibliography and interpretation notes','<ol>'+references+'</ol><p class="report-note">'+esc(report.reading.method)+'</p><details><summary>How the books are used</summary><p>'+esc(report.coverage)+'</p><p>'+esc(report.other_books)+'</p></details>');
+        specialist+(report.specialists?renderHistorical(report.specialists):'')+section('Bibliography and interpretation notes','<ol>'+references+'</ol><p class="report-note">'+esc(report.reading.method)+'</p><details><summary>How the books are used</summary><p>'+esc(report.coverage)+'</p><p>'+esc(report.other_books)+'</p></details>')+(report.specialists?renderHistoricalBibliography(report.specialists):'');
     }
     function renderCareerPlain(agent) {
       const evidence=agent.evidence||[], placements=evidence.filter(i=>i.type==='career_house_placement');
@@ -314,6 +327,7 @@
       return section(title,list(rows)+note);
     }
     function renderReading(body) {
+      if(body.historical_specialists)return renderHistorical(body.historical_specialists)+renderHistoricalBibliography(body.historical_specialists);
       if(body.planets && body.ascendant)return body.book_report?renderBookReport(body.book_report,renderLahiri(body)):renderNatal(body);
       if(body.agents){
         const natal=body.agents.find(a=>a.agent==='Natal / Genethliacal Agent');

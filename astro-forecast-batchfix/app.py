@@ -12,6 +12,7 @@ from astro.synthesis import synthesize
 from astro.narrative import build_narrative_report, SECTION_ORDER
 from astro.agents import AstrologyOrchestrator
 from astro.book_library import BookKnowledgeLibrary
+from astro.historical_specialists import run_historical_specialists, plan_catalogue
 from astro.natal_books import build_book_natal_report
 from astro.specialist_agents import (
     AskAgent, CareerAgent, CompatibilityAgent, GeoAstrologyAgent,
@@ -460,7 +461,28 @@ def api_agent_timing():
     return jsonify(report.to_dict())
 
 
+
+
+
+@app.route('/api/platform/plans')
+def api_platform_plans():
+    return jsonify(plan_catalogue())
+
+
+@app.route('/api/agents/historical')
+def api_historical_specialists():
+    b = _parse_birth(request.args)
+    chart = build_natal_chart(b['year'], b['month'], b['day'], b['hour'], b['minute'],
+                             b['utc_offset'], b['latitude'], b['longitude'])
+    reports = run_historical_specialists(chart)
+    selected = request.args.get('specialist')
+    if selected:
+        if selected not in {'merton','daath','raleigh'}:
+            return jsonify({'error':'Choose merton, daath or raleigh.'}), 400
+        reports = [r for r in reports if r['id'] == selected]
+    return jsonify({'historical_specialists':reports})
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=False)
-

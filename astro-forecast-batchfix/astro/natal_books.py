@@ -5,6 +5,7 @@ one-based scan pages, which can differ from the printed pagination.
 """
 import swisseph as swe
 from .ephemeris import PLANET_IDS, sign_of, whole_sign_house_of
+from .historical_specialists import run_historical_specialists
 
 SUN_READINGS = {
     'Aries': 'White associates this placement with independence, determination and a preference for leading. He also describes quick reactions tempered by a readiness to forgive.',
@@ -107,8 +108,9 @@ def build_book_natal_report(chart, latitude=None, longitude=None):
             'basis_note': 'The main wheel uses the tropical zodiac with whole-sign houses as a platform display choice. Lahiri is available as a separate specialist view. House-specific book interpretations have not been applied. Aspect selection uses a platform limit of 5°, not Raphael’s complete orb tables.',
             'planets': planets, 'chart': tropical_chart, 'sections': sections,
             'reading': synthesize_natal_reading(planets, aspects, index, tropical_chart),
+            'specialists': run_historical_specialists(chart),
             'coverage': 'This reading currently uses checked passages from White, Raphael and, when applicable, Karma. It covers the Sun and selected planetary combinations, plus a limited rising-sign interpretation. A full reading of every planet and house is still being developed.',
-            'other_books': 'Karma: verified passages about the rising sign are included when they match your chart; wider coverage is still being checked. Merton: reads planetary positions from the Sun’s viewpoint, so it needs its own calculated specialist chart. Daath: discusses historical medical symbolism; it is not used to make claims about your health. Raleigh: supplies Hermetic philosophy rather than a ready-made personal chart reading. Their relevant material has not yet been integrated into this report.'}
+            'other_books': 'Merton, Daath and Raleigh now have separate specialist sections below the main reading. Each explains its method, calculated evidence or reflection exercise, and current coverage. Further passages from all six books are still being checked.'}
 
 
 def synthesize_natal_reading(planets, aspects, sun_index, chart=None):
