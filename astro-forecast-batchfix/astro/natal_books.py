@@ -5,6 +5,7 @@ one-based scan pages, which can differ from the printed pagination.
 """
 import swisseph as swe
 from datetime import datetime, timedelta
+from .additional_books import additional_natal_sections, esoteric_sections
 from .life_periods import build_life_period_report
 from .ephemeris import PLANET_IDS, sign_of, whole_sign_house_of
 from .historical_specialists import run_historical_specialists
@@ -30,7 +31,10 @@ SIGNS = list(SUN_READINGS)
 def citation(source, pdf_page, printed_page, chapter):
     titles = {'white_guide': ('A Guide To Astrology', 'Fredrick White'),
               'karma_ancient_egyptians': ('Astrology of the Ancient Egyptians', 'Karma'),
-              'raphael_guide': ('The Guide to Astrology', 'Raphael')}
+              'raphael_guide': ('The Guide to Astrology', 'Raphael'),
+              'bart_success': ('Thru the Stars to Success: Astrology Today', 'Belle Bart'),
+              'pontin_manual': ('Manual of Astrology', 'Marie Juliette Pontin'),
+              'leo_esoteric': ('Esoteric Astrology', 'Alan Leo')}
     title, author = titles[source]
     return {'source_id': source, 'title': title, 'author': author,
             'pdf_page': pdf_page, 'printed_page': printed_page, 'chapter': chapter,
@@ -116,13 +120,13 @@ def build_book_natal_report(chart, latitude=None, longitude=None):
         for ref in life_report['references']:
             if ref not in reading['references']:
                 reading['references'].append(ref)
-    return {'version': 4, 'basis': 'Western tropical, geocentric planetary positions',
+    return {'version': 5, 'basis': 'Western tropical, geocentric planetary positions',
             'basis_note': 'The main wheel uses the tropical zodiac with whole-sign houses as a platform display choice. Lahiri is available as a separate specialist view. House topics, selected planet-in-house passages and rulership are now interpreted. Whole-sign cusps and editorial ruler links are platform choices, not a reproduction of either book’s complete historical cusp method. The astronomical Midheaven is recorded separately from the whole-sign tenth house. Aspect selection uses a platform limit of 5°, not Raphael’s complete orb tables.',
             'planets': planets, 'chart': tropical_chart, 'sections': sections,
             'reading': reading, 'life_report':life_report,
             'specialists': run_historical_specialists(chart),
-            'coverage': 'This reading currently uses checked passages from White, Raphael and, when applicable, Karma. It covers the Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn, Uranus and Neptune, selected planetary combinations, all twelve house topics and their rulers when a birth location is available. Selected planet-in-house passages have been verified; an exhaustive delineation of every combination is not claimed. Pluto is not covered by these books.',
-            'other_books': 'Merton, Daath and Raleigh now have separate specialist sections below the main reading. Each explains its method, calculated evidence or reflection exercise, and current coverage. Further passages from all six books are still being checked.'}
+            'coverage': 'This reading currently uses checked passages from White, Raphael, Belle Bart, selected Pontin passages and, when applicable, Karma. It covers the Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn, Uranus and Neptune, selected planetary combinations, all twelve house topics and their rulers when a birth location is available. Selected planet-in-house passages have been verified; an exhaustive delineation of every combination is not claimed. Pluto is not covered by these books.',
+            'other_books': 'Merton, Daath and Raleigh now have separate specialist sections below the main reading. Each explains its method, calculated evidence or reflection exercise, and current coverage. Belle Bart and selected Pontin Mercury passages enrich the main reading. Alan Leo appears as a separate esoteric reflection. Only checked passages are applied; the three new scans are not an exhaustive interpretation engine.'}
 
 
 def synthesize_natal_reading(planets, aspects, sun_index, chart=None):
@@ -191,13 +195,15 @@ def synthesize_natal_reading(planets, aspects, sun_index, chart=None):
         delineation = build_western_delineation(planets, chart, aspects, citation, SUN_READINGS)
         if delineation['overview']:
             sections.insert(1,delineation['overview'])
+    sections.extend(additional_natal_sections(planets,citation))
+    esoteric = esoteric_sections(planets,citation)
     references = []
-    reference_sections = sections + (delineation['planet_sections'] + delineation['house_sections'] if delineation else [])
+    reference_sections = sections + esoteric + (delineation['planet_sections'] + delineation['house_sections'] if delineation else [])
     for section in reference_sections:
         for c in section['citations']:
             if c not in references:
                 references.append(c)
-    return {'sections': sections, 'references': references,
+    return {'sections': sections, 'esoteric_sections':esoteric, 'references': references,
             'planet_sections': delineation['planet_sections'] if delineation else [],
             'house_sections': delineation['house_sections'] if delineation else [],
             'delineation_note': delineation['method_note'] if delineation else '',

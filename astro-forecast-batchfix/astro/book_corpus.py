@@ -268,3 +268,17 @@ TOPIC_ALIASES = {
     "medical": "medical_astrology",
     "health": "medical_astrology",
 }
+
+# Additional uploads: curated page-checked units, not full scanned text.
+SOURCES.update({
+ "bart_success": {"title":"Thru the Stars to Success: Astrology Today", "author":"Belle Bart", "system":"WESTERN_TRADITIONAL", "coverage":["self-knowledge","personal agency","preparation"], "year":1923, "pdf_pages":136, "ingestion_status":"selected_passages_verified"},
+ "pontin_manual": {"title":"Manual of Astrology", "author":"Marie Juliette Pontin", "system":"WESTERN_TRADITIONAL", "coverage":["selected Mercury sign descriptions"], "year":1924, "pdf_pages":88, "ingestion_status":"selected_passages_verified", "scan_note":"Kaliastra digitization; source attribution retained; no scan redistributed."},
+ "leo_esoteric": {"title":"Esoteric Astrology", "author":"Alan Leo", "system":"ESOTERIC_HISTORICAL", "coverage":["Saturn symbolism","responsibility","esoteric philosophy"], "year":1918, "pdf_pages":324, "ingestion_status":"selected_passages_verified"},
+})
+ENTRIES.extend([
+ {"id":"bart.agency.preparation", "source":"bart_success", "system":"WESTERN_TRADITIONAL", "topics":["natal","timing","preparation"], "locator":"How Astrology Helps, printed p. 10 / PDF p. 18", "summary":"Bart emphasizes self-knowledge and personal choice; planetary symbolism does not remove agency. Practical preparation prompts are editorial applications of this principle, not event predictions.", "keywords":["agency","self-knowledge","preparation","choice"]},
+ {"id":"leo.saturn.development", "source":"leo_esoteric", "system":"ESOTERIC_HISTORICAL", "topics":["esoteric","Saturn","responsibility"], "locator":"Spheres of Influence, printed p. 26 / PDF p. 48", "summary":"Within Leo's historical esoteric framework, Saturn symbolizes duty, limitation, perseverance and development of stability and self-control. This general symbolism is separate from dated forecasting and does not establish karmic debts or spiritual rank.", "keywords":["Saturn","duty","limits","perseverance","esoteric"]},
+])
+from .additional_books import MERCURY as _PONTIN_MERCURY
+for _sign, (_themes, _page, _printed) in _PONTIN_MERCURY.items():
+    ENTRIES.append({"id":"pontin.mercury."+_sign.lower(), "source":"pontin_manual", "system":"WESTERN_TRADITIONAL", "topics":["natal","Mercury","communication"], "locator":f"Mercury in {_sign}, printed p. {_printed} / PDF p. {_page}", "summary":f"Pontin connects Mercury in {_sign} with {_themes}. This is a historical symbolic description, not a fixed judgment of ability.", "keywords":["Mercury",_sign,"thinking","communication"]})

@@ -135,9 +135,10 @@ def build_life_period_report(lahiri_chart, western_chart, birth_dt, start, cite,
     for name in ['Jupiter','Saturn']:
         p = planets[name];_,page = SIGN_TRAITS[name][SIGNS.index(p['sign'])]
         refs.append(cite('white_guide',page,page-6,name+' in '+p['sign']))
+    refs.append(cite('bart_success',18,10,'How Astrology Helps: Personal Agency'))
     next_transition = forthcoming[0] if forthcoming else None
     return {'title':'Your life chapters and preparation','start':_date(start),'end':_date(end),
-      'intro':'The natal reading describes enduring themes. This timeline adds dates for reviewing how those themes may be expressed as planetary periods change. Use it alongside your actual choices, commitments and circumstances.',
+      'intro':'The natal reading describes enduring themes. This timeline adds dates for reviewing how those themes may be expressed as planetary periods change. Use it alongside your actual choices, commitments and circumstances. Following Belle Bart’s emphasis on personal agency, prepare by naming one pattern to keep, one response to change and one manageable action; review what actually happened afterwards. This preparation exercise is an editorial application, not a forecast of an event.',
       'current_chapters':current,'next_transition':next_transition,'chapters':chapters,'yearly':yearly,
       'vedic':{'major_lord':md['lord'] if md else None,'sub_lord':ad['lord'] if ad else None,
                'major_end':_date(md['end']) if md else None,'sub_end':_date(ad['end']) if ad else None,
