@@ -10,6 +10,7 @@ from astro.i18n import get_translations
 from astro.report import build_pdf_report, build_narrative_pdf
 from astro.synthesis import synthesize
 from astro.narrative import build_narrative_report, SECTION_ORDER
+from astro.agents import AstrologyOrchestrator
 
 app = Flask(__name__)
 init_ephemeris()
@@ -280,6 +281,34 @@ def api_narrative_pdf():
     filename = f"narrative_{b['year']}-{b['month']:02d}-{b['day']:02d}_{provider}_{lang}.pdf"
     return send_file(out_path, mimetype="application/pdf", as_attachment=True,
                       download_name=filename)
+
+
+@app.route("/api/agents/analyze")
+def api_agents_analyze():
+    """Run the v2 specialist-agent pipeline and return inspectable evidence."""
+    b = _parse_birth(request.args)
+    months = max(1, min(int(request.args.get("months", 24)), 120))
+    start_str = request.args.get("start")
+    start = datetime.strptime(start_str, "%Y-%m-%d") if start_str else datetime.now()
+    question = request.args.get("question", "").strip()
+
+    chart = build_natal_chart(
+        b["year"], b["month"], b["day"], b["hour"], b["minute"],
+        b["utc_offset"], b["latitude"], b["longitude"],
+    )
+    birth_dt = datetime(b["year"], b["month"], b["day"], b["hour"], b["minute"])
+
+    orchestrator = AstrologyOrchestrator()
+    bundle = orchestrator.run(
+        chart=chart,
+        birth_dt=birth_dt,
+        latitude=b["latitude"],
+        longitude=b["longitude"],
+        start=start,
+        months=months,
+        question=question,
+    )
+    return jsonify(bundle)
 
 
 if __name__ == "__main__":
