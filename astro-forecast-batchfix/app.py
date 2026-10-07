@@ -13,7 +13,8 @@ from astro.narrative import build_narrative_report, SECTION_ORDER
 from astro.agents import AstrologyOrchestrator
 from astro.book_library import BookKnowledgeLibrary
 from astro.historical_specialists import run_historical_specialists, plan_catalogue
-from astro.natal_books import build_book_natal_report
+from astro.natal_books import build_book_natal_report, SUN_READINGS, citation
+from astro.zodiac_profiles import build_zodiac_profile
 from astro.specialist_agents import (
     AskAgent, CareerAgent, CompatibilityAgent, GeoAstrologyAgent,
     PredictiveTimingEnsemble,
@@ -491,6 +492,16 @@ def api_historical_specialists():
         reports = [r for r in reports if r['id'] == selected]
     return jsonify({'historical_specialists':reports})
 
+
+
+@app.route('/api/zodiac/profiles')
+def api_zodiac_profiles():
+    sign = request.args.get('sign')
+    if sign:
+        if sign not in SUN_READINGS:
+            return jsonify({'error':'Choose one of the twelve zodiac signs.'}), 400
+        return jsonify({'zodiac_profile':build_zodiac_profile(sign,SUN_READINGS,citation)})
+    return jsonify({'profiles':[{'sign':sign,'title':sign+' · understanding yourself'} for sign in SUN_READINGS]})
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))

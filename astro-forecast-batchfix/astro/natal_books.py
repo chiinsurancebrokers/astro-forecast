@@ -120,10 +120,12 @@ def build_book_natal_report(chart, latitude=None, longitude=None):
         for ref in life_report['references']:
             if ref not in reading['references']:
                 reading['references'].append(ref)
-    return {'version': 5, 'basis': 'Western tropical, geocentric planetary positions',
+    from .zodiac_profiles import build_zodiac_profile
+    zodiac_profile=build_zodiac_profile(planets['Sun']['sign'],SUN_READINGS,citation)
+    return {'version': 6, 'basis': 'Western tropical, geocentric planetary positions',
             'basis_note': 'The main wheel uses the tropical zodiac with whole-sign houses as a platform display choice. Lahiri is available as a separate specialist view. House topics, selected planet-in-house passages and rulership are now interpreted. Whole-sign cusps and editorial ruler links are platform choices, not a reproduction of either book’s complete historical cusp method. The astronomical Midheaven is recorded separately from the whole-sign tenth house. Aspect selection uses a platform limit of 5°, not Raphael’s complete orb tables.',
             'planets': planets, 'chart': tropical_chart, 'sections': sections,
-            'reading': reading, 'life_report':life_report,
+            'reading': reading, 'life_report':life_report, 'zodiac_profile':zodiac_profile,
             'specialists': run_historical_specialists(chart),
             'coverage': 'This reading currently uses checked passages from White, Raphael, Belle Bart, selected Pontin passages and, when applicable, Karma. It covers the Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn, Uranus and Neptune, selected planetary combinations, all twelve house topics and their rulers when a birth location is available. Selected planet-in-house passages have been verified; an exhaustive delineation of every combination is not claimed. Pluto is not covered by these books.',
             'other_books': 'Merton, Daath and Raleigh now have separate specialist sections below the main reading. Each explains its method, calculated evidence or reflection exercise, and current coverage. Belle Bart and selected Pontin Mercury passages enrich the main reading. Alan Leo appears as a separate esoteric reflection. Only checked passages are applied; the three new scans are not an exhaustive interpretation engine.'}

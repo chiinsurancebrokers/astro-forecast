@@ -50,3 +50,19 @@ assert(lifeHtml.includes('1 January 2027'));
 assert(lifeHtml.indexOf('Review commitments.') < lifeHtml.indexOf('Timing bibliography'));
 assert(evaluate('renderLifeReport(life,true,false)').includes('<summary>Your life chapters · dates and preparation</summary>'));
 assert(!evaluate('renderLifeReport(life,true,false)').includes('Timing bibliography'));
+
+// Zodiac profiles separate sourced material, editorial questions and user notes.
+sandbox.zodiac={sign:'Aquarius',title:'Aquarius · understanding yourself',intro:'One perspective.',sections:[{title:'Source perspective',paragraphs:['Checked source.']},{title:'Strengths',paragraphs:['Develop a skill.']},{title:'Balance',paragraphs:['Consider your habits.','Which conviction deserves review?']}],references:[{author:'White',title:'Guide',chapter:'Aquarius',printed_page:12,pdf_page:18}],method:'Source and application.'};
+const zodiacHtml=evaluate('renderZodiacProfile(zodiac)');
+assert(zodiacHtml.indexOf('Checked source.')<zodiacHtml.indexOf('Profile bibliography'));
+assert(evaluate('zodiacChooser()').includes('Pisces'));
+assert.equal((evaluate('zodiacChooser()').match(/<option/g)||[]).length,12);
+sandbox.journeyNotes={turning_points:'2005 · <script>attack</script>',responses:'Studied and rebuilt a skill.',goals:'A meaningful home and work.'};
+const journeyHtml=evaluate('renderJourney(zodiac,journeyNotes)');
+assert(journeyHtml.includes('&lt;script&gt;attack&lt;/script&gt;'));
+assert(!journeyHtml.includes('<script>'));
+assert(journeyHtml.includes('your aspirations'));
+assert(journeyHtml.includes('not a guaranteed outcome'));
+assert(journeyHtml.includes('not correlate your history with transit dates'));
+assert(!htmlSource.includes('localStorage'));
+assert(!htmlSource.includes('fetch(\'/api/journey'));
