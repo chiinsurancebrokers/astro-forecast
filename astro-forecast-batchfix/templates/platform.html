@@ -93,7 +93,29 @@
     .form-actions small { color: var(--muted); }
     .insight { background: linear-gradient(145deg, rgba(42,48,83,.74), rgba(20,31,59,.8)); }
     .insight p { color: var(--muted); font-size: 13px; }
-    #result { max-height: 220px; overflow: auto; margin-top: 12px; color: #cdd7f1; white-space: pre-wrap; font: 11px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; }
+    #result { margin-top: 16px; color: #cdd7f1; font-size: 14px; }
+    dialog { width: min(880px, calc(100% - 24px)); max-height: 90dvh; padding: 0; color: var(--ink); background: #101a36; border: 1px solid var(--line); border-radius: 20px; overflow: auto; }
+    dialog::backdrop { background: rgba(2,5,17,.82); backdrop-filter: blur(8px); }
+    .report-header { position: sticky; top: 0; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 24px; background: #101a36; border-bottom: 1px solid var(--line); z-index: 2; }
+    .report-header h2 { margin: 0; font-size: 25px; }
+    .report-header button { border: 1px solid var(--line); border-radius: 9px; background: transparent; color: var(--ink); padding: 8px 12px; }
+    #report-content { padding: 24px; }
+    .report-section { margin: 0 0 24px; }
+    .report-section h3 { font-family: Georgia,serif; font-weight: 400; font-size: 24px; color: var(--gold); margin: 0 0 12px; }
+    .report-section p, .report-section li { color: #cdd7f1; font-size: 15px; line-height: 1.7; }
+    .report-section ul { padding-left: 21px; }
+    .report-section li { margin-bottom: 9px; }
+    .report-note { font-size: 13px; color: var(--muted); }
+    .chart-wheel { display: block; width: min(100%,440px); margin: 0 auto 22px; }
+    .planet-list { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+    .planet-row { padding: 13px; border: 1px solid var(--line); border-radius: 12px; }
+    .planet-row strong { color: var(--gold); }
+    .planet-row p { margin: 5px 0 0; font-size: 13px; }
+    .report-form { display: grid; gap: 14px; }
+    .report-form .form-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    .answer-text { white-space: pre-wrap; line-height: 1.8; }
+    @media(max-width: 480px) { #report-content { padding: 18px; } .planet-list { grid-template-columns: 1fr; } .report-header { padding: 14px 18px; } }
+
     .disclaimer { margin: 22px 2px 0; color: #75819d; font-size: 11px; }
     @media (max-width: 1050px) { .hero, .timing { grid-column: span 12; } .feature { grid-column: span 6; } }
     @media (max-width: 700px) {
@@ -112,16 +134,16 @@
       <div class="eyebrow" style="padding:0 12px 12px">Workspace</div>
       <nav aria-label="Main navigation">
         <a class="active" href="/platform"><span>◉</span>Overview</a>
-        <a href="#chart"><span>☉</span>Natal chart</a>
-        <a href="#timing"><span>◷</span>Timing intelligence</a>
-        <a href="#explore"><span>◎</span>Compatibility</a>
-        <a href="#explore"><span>✧</span>Career &amp; purpose</a>
-        <a href="#explore"><span>⌖</span>GeoAstrology</a>
+        <a href="#natal" onclick="event.preventDefault();runAgent('/api/natal')"><span>☉</span>Natal chart</a>
+        <a href="#timing" onclick="event.preventDefault();runAgent('/api/agents/timing')"><span>◷</span>Timing intelligence</a>
+        <a href="#compatibility" onclick="event.preventDefault();compareCharts()"><span>◎</span>Compatibility</a>
+        <a href="#career" onclick="event.preventDefault();runAgent('/api/agents/career')"><span>✧</span>Career &amp; purpose</a>
+        <a href="#geo" onclick="event.preventDefault();exploreGeo()"><span>⌖</span>GeoAstrology</a>
       </nav>
       <div class="side-card">
         <div class="eyebrow">Your next insight</div>
         <p>Bring your birth details into the library to unlock a more personal reading.</p>
-        <button onclick="document.querySelector('#chart').scrollIntoView({behavior:'smooth'})">Create a chart</button>
+        <button onclick="runAgent('/api/natal')">Create a chart</button>
       </div>
     </aside>
     <main>
@@ -143,7 +165,7 @@
             <div class="eyebrow">Astrology Intelligence Engine</div>
             <h2>Find the pattern.<br>Choose your moment.</h2>
             <p>Bring planetary cycles, traditional knowledge and your natal chart into one thoughtful view.</p>
-            <button class="primary" onclick="document.querySelector('#chart').scrollIntoView({behavior:'smooth'})">Explore your chart&nbsp; ↗</button>
+            <button class="primary" onclick="runAgent('/api/natal')">Explore your chart&nbsp; ↗</button>
           </div>
           <div class="orbit" aria-hidden="true">
             <i class="ring"></i><i class="ring two"></i><i class="planet"></i><i class="satellite"></i>
@@ -171,73 +193,148 @@
               <label>Day<input id="day" type="number" value="8" min="1" max="31"></label>
               <label>Hour<input id="hour" type="number" value="11" min="0" max="23"></label>
               <label>Minute<input id="minute" type="number" value="20" min="0" max="59"></label>
-              <label>UTC offset<input id="offset" type="number" value="2" step="0.25" min="-12" max="14"></label>
+              <label>UTC offset<input id="offset" type="number" value="2" step="0.25" min="-12" max="14"></label><label>Birth latitude<input id="latitude" type="number" value="37.9838" step="any" min="-89" max="89"></label><label>Birth longitude<input id="longitude" type="number" value="23.7275" step="any" min="-180" max="180"></label>
             </div>
-            <div class="form-actions"><button class="primary" onclick="runAgent('/api/agents/analyze')">Generate my reading</button><small>Coordinates default to Athens.</small></div>
+            <div class="form-actions"><button class="primary" onclick="runAgent('/api/agents/analyze')">Generate my reading</button><small>Use the birth location and UTC offset at birth.</small></div>
           </article>
           <article class="card insight">
-            <div class="eyebrow">Your evidence preview</div>
-            <h2>Thoughtful, transparent guidance.</h2>
+            <div class="eyebrow">Your personal reading</div>
+            <h2>Explore what your chart reveals.</h2>
             <p>Astrology is used here as a reflective framework. Timing signals are not validated predictions.</p>
-            <label>Ask about your chart<input id="question" type="text" placeholder="What themes should I focus on this year?"></label><div class="form-actions"><button class="primary" onclick="askChart()">Ask the chart ↗</button></div><div id="result" role="status" aria-live="polite">Choose an insight above or generate a reading to see chart evidence here.</div>
+            <label>Ask about your chart<input id="question" type="text" placeholder="What themes should I focus on this year?"></label><div class="form-actions"><button class="primary" onclick="askChart()">Ask the chart ↗</button></div><div id="result" role="status" aria-live="polite">Choose a chart tool above. Your report opens in a dedicated reading window.</div>
           </article>
         </div>
       </section>
       <p class="disclaimer">Astrology is a cultural and reflective practice, not a substitute for professional medical, financial or legal advice.</p>
     </main>
   </div>
+  <dialog id="reading-dialog" aria-labelledby="report-title">
+    <div class="report-header"><h2 id="report-title">Your reading</h2><button type="button" onclick="document.querySelector('#reading-dialog').close()" aria-label="Close reading">Close ✕</button></div>
+    <div id="report-content" aria-live="polite"></div>
+  </dialog>
   <script>
-    const today = new Intl.DateTimeFormat(undefined, {weekday:'short', month:'long', day:'numeric'}).format(new Date());
-    document.querySelector('#today').textContent = 'Today · ' + today;
-    function birthQuery() {
-      const values = {
-        year:document.querySelector('#year').value, month:document.querySelector('#month').value,
-        day:document.querySelector('#day').value, hour:document.querySelector('#hour').value,
-        minute:document.querySelector('#minute').value, utc_offset:document.querySelector('#offset').value,
-        latitude:37.9838, longitude:23.7275, months:12
-      };
-      return new URLSearchParams(values).toString();
+
+    const $ = selector => document.querySelector(selector);
+    const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+    const nice = value => String(value ?? '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    const HOUSE_THEMES = {1:'identity and self-expression',2:'resources, values and income',3:'communication and learning',4:'home and foundations',5:'creativity and pleasure',6:'daily work and routines',7:'partnerships',8:'shared resources and change',9:'higher learning, travel and beliefs',10:'career and public life',11:'networks and long-term aims',12:'reflection and private life'};
+    const SIGN_THEMES = {Aries:'initiative and independence',Taurus:'steadiness and tangible values',Gemini:'curiosity and communication',Cancer:'care and belonging',Leo:'creative expression and visibility',Virgo:'discernment and practical improvement',Libra:'balance and cooperation',Scorpio:'depth and transformation',Sagittarius:'exploration and meaning',Capricorn:'structure and long-term effort',Aquarius:'ideas and collective interests',Pisces:'imagination and sensitivity'};
+    const GLYPHS = {Sun:'☉',Moon:'☽',Mercury:'☿',Venus:'♀',Mars:'♂',Jupiter:'♃',Saturn:'♄',Rahu:'☊',Ketu:'☋'};
+    const TITLES = {'/api/natal':'Your natal chart','/api/agents/analyze':'Your chart reading','/api/agents/career':'Career & purpose','/api/agents/timing':'Timing intelligence','/api/agents/compatibility':'Compatibility reading','/api/agents/geo':'Location comparison','/api/agents/ask':'Ask your chart'};
+    let requestSequence = 0;
+    $('#today').textContent = 'Today · ' + new Intl.DateTimeFormat(undefined,{weekday:'short',month:'long',day:'numeric'}).format(new Date());
+    function birthValues() {
+      const values = {};
+      for (const key of ['year','month','day','hour','minute','latitude','longitude']) values[key] = Number($('#'+key).value);
+      values.utc_offset = Number($('#offset').value); values.months = 12;
+      const test = new Date(0); test.setUTCFullYear(values.year,values.month-1,values.day);
+      if (test.getUTCFullYear() !== values.year || test.getUTCMonth() !== values.month-1 || test.getUTCDate() !== values.day) throw new Error('Please enter a valid birth date.');
+      for (const input of document.querySelectorAll('#chart input')) if (!input.value || !input.checkValidity()) throw new Error('Please check your birth details and coordinates.');
+      return values;
     }
-    async function runAgent(path, extra = {}) {
-      const out = document.querySelector('#result');
-      out.textContent = 'Reading the chart evidence…';
-      try {
-        const query = new URLSearchParams({...Object.fromEntries(new URLSearchParams(birthQuery())), ...extra});
-        const response = await fetch(path + '?' + query.toString());
-        const body = await response.json();
-        if (!response.ok) throw new Error(body.error || 'The request could not be completed.');
-        out.textContent = formatEvidence(body);
-      } catch (error) {
-        out.textContent = error.message;
-      }
+    function openReading(title, html) {
+      $('#report-title').textContent = title; $('#report-content').innerHTML = html;
+      const dialog = $('#reading-dialog');
+      if (!dialog.open) dialog.showModal();
     }
-    function formatEvidence(body) {
-      if (body.planets && body.ascendant) {
-        const lines = ['Natal chart · Ascendant: ' + body.ascendant.sign + ' ' + Number(body.ascendant.sign_deg).toFixed(1) + '°'];
-        for (const [name, p] of Object.entries(body.planets)) lines.push(name + ': ' + p.sign + ' ' + Number(p.sign_deg).toFixed(1) + '° · house ' + p.house);
-        return lines.join('\n');
+    function section(title, html) { return '<section class="report-section"><h3>'+esc(title)+'</h3>'+html+'</section>'; }
+    function list(items) { return '<ul>'+items.map(item=>'<li>'+esc(item)+'</li>').join('')+'</ul>'; }
+    function chartWheel(chart) {
+      const signs=['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
+      const ascIndex=signs.indexOf(chart.ascendant.sign), origin=ascIndex*30;
+      const point=(angle,r)=>{const a=angle*Math.PI/180;return [220+r*Math.cos(a),220-r*Math.sin(a)];};
+      let svg='<svg class="chart-wheel" viewBox="0 0 440 440" role="img" aria-label="Sidereal natal chart with twelve whole-sign houses"><title>Sidereal natal chart · Lahiri · Whole-sign houses</title><circle cx="220" cy="220" r="205" fill="#080e23" stroke="#e7c68d" stroke-width="1"/><circle cx="220" cy="220" r="156" fill="none" stroke="#68749a"/><circle cx="220" cy="220" r="105" fill="none" stroke="#354366"/>';
+      for(let i=0;i<12;i++){
+        const boundary=point(180-i*30,205), inner=point(180-i*30,105), label=point(165-i*30,181), house=point(165-i*30,124);
+        svg+='<path d="M '+inner.join(' ')+' L '+boundary.join(' ')+'" stroke="#354366"/><text x="'+label[0]+'" y="'+label[1]+'" text-anchor="middle" dominant-baseline="middle" fill="#cdd7f1" font-size="10">'+esc(signs[(ascIndex+i)%12])+'</text><text x="'+house[0]+'" y="'+house[1]+'" text-anchor="middle" fill="#8e9bbc" font-size="11">'+(i+1)+'</text>';
       }
-      if (body.agents) return body.agents.map(agent => agent.agent + ': ' + agent.evidence.length + ' evidence points').join('\n') + '\n\n' + (body.guardrails?.forecasting || '');
-      if (body.evidence) return (body.agent || body.title || 'Chart insight') + '\n' + body.evidence.map(item => '• ' + (item.statement || item.description || JSON.stringify(item))).join('\n');
-      return JSON.stringify(body, null, 2);
+      Object.entries(chart.planets).forEach(([name,p],i)=>{
+        const pos=point(180-(Number(p.longitude)-origin),i%2?140:151);
+        svg+='<text x="'+pos[0]+'" y="'+pos[1]+'" text-anchor="middle" dominant-baseline="middle" fill="#e7c68d" font-size="18"><title>'+esc(name+' in '+p.sign+' · house '+p.house)+'</title>'+esc(GLYPHS[name]||name.slice(0,2))+'</text>';
+      });
+      svg+='<text x="220" y="213" text-anchor="middle" fill="#e7c68d" font-size="16">'+esc(chart.ascendant.sign)+' rising</text><text x="220" y="237" text-anchor="middle" fill="#a4b1cd" font-size="12">Lahiri · Whole sign</text></svg>';
+      return svg;
+    }
+    function renderNatal(chart, aspects=[]) {
+      const asc=chart.ascendant, sun=chart.planets.Sun, moon=chart.planets.Moon;
+      const overview='<p>Your Ascendant is <strong>'+esc(asc.sign)+'</strong> at '+Number(asc.sign_deg).toFixed(1)+'°. Your Sun is in <strong>'+esc(sun.sign)+'</strong> and your Moon in <strong>'+esc(moon.sign)+'</strong>.</p><p>In traditional symbolism, '+esc(asc.sign)+' rising brings attention to '+esc(SIGN_THEMES[asc.sign])+'. The Sun adds themes of '+esc(SIGN_THEMES[sun.sign])+', while the Moon highlights '+esc(SIGN_THEMES[moon.sign])+'. Use these as prompts for reflection.</p>';
+      const planets='<div class="planet-list">'+Object.entries(chart.planets).map(([name,p])=>'<div class="planet-row"><strong>'+esc(name)+' · '+esc(p.sign)+' '+Number(p.sign_deg).toFixed(1)+'°</strong><p>House '+esc(p.house)+' — '+esc(HOUSE_THEMES[p.house])+'.'+(p.retrograde?' Retrograde.':'')+'</p>'+(p.nakshatra?'<p>'+esc(p.nakshatra)+' · Pada '+esc(p.pada)+'</p>':'')+'</div>').join('')+'</div>';
+      return section('Your natal pattern',chartWheel(chart)+overview)+section('Planet placements',planets)+(aspects.length?section('Major aspects',list(aspects.map(i=>i.planets.join(' and ')+' form a '+i.aspect+' with an orb of '+i.orb+'°.'))):'');
+    }
+    function renderAgent(agent) {
+      const evidence=agent.evidence||[], rows=[];
+      for(const item of evidence){
+        switch(item.type){
+          case 'vimshottari_current': rows.push('Current major period: '+(item.mahadasha||'unavailable')+'. Current subperiod: '+(item.antardasha||'unavailable')+'.'+(item.antardasha_end?' This subperiod ends '+item.antardasha_end.slice(0,10)+'.':''));break;
+          case 'career_house_placement': rows.push(item.planet+' is in '+item.sign+' in house '+item.house+', bringing symbolic emphasis to '+HOUSE_THEMES[item.house]+'.');break;
+          case 'ascendant_ruler': rows.push('Your chart ruler, '+item.planet+', is in '+item.sign+' in house '+item.house+' — '+HOUSE_THEMES[item.house]+'.');break;
+          case 'cross_chart_aspect': rows.push('Your '+item.a+' forms a '+item.aspect+' with the other chart’s '+item.b+' (orb '+item.orb+'°). '+({conjunction:'This highlights a shared focus.',sextile:'Traditionally read as an opportunity for cooperation.',trine:'Traditionally read as a point of ease.',square:'Traditionally read as a contrast to work through.',opposition:'Traditionally read as contrasting perspectives to balance.'}[item.aspect]||''));break;
+          case 'placement_pair': rows.push(item.planet+': your chart is in '+item.person_a+'; the second chart is in '+item.person_b+'.');break;
+          case 'relocated_ascendant': rows.push('At the selected location, the Ascendant changes from '+item.natal_sign+' to '+item.relocated_sign+' '+Number(item.relocated_degree).toFixed(1)+'°.');break;
+          case 'relocated_house_change': rows.push(item.planet+' moves from house '+item.natal_house+' to house '+item.relocated_house+', shifting the symbolic focus toward '+HOUSE_THEMES[item.relocated_house]+'.');break;
+          case 'timing_window': rows.push(item.month+': the strongest calculated themes are '+item.signals.map(s=>nice(s.area)).join(', ')+'.');break;
+          case 'monthly_activation': rows.push(item.month+': strongest activation themes — '+(item.top||[]).slice(0,3).map(s=>nice(s.area)).join(', ')+'.');break;
+          case 'slow_planet_sign_change': rows.push(item.date+': '+item.planet+' changes from '+item.from_sign+' to '+item.to_sign+'.');break;
+        }
+      }
+      if(!rows.length)return '';
+      const title=({'Career Agent':'Career & purpose','Compatibility Agent':'Between the two charts','GeoAstrology Agent':'A different location','Vimshottari Timing Agent':'Your current planetary periods','Transit Intelligence Agent':'Monthly transit themes','Multi-model Predictive Timing Agent':'Your timing calendar'}[agent.agent]||agent.agent);
+      const note=(agent.notes||[]).filter(n=>!n.includes('dataset')).map(n=>'<p class="report-note">'+esc(n)+'</p>').join('');
+      return section(title,list(rows)+note);
+    }
+    function renderReading(body) {
+      if(body.planets && body.ascendant)return renderNatal(body);
+      if(body.agents){
+        const natal=body.agents.find(a=>a.agent==='Natal / Genethliacal Agent');
+        let html='';
+        if(natal){
+          const asc=natal.evidence.find(i=>i.type==='ascendant'), planets={};
+          natal.evidence.filter(i=>i.type==='planet_placement').forEach(p=>planets[p.planet]={...p,sign_deg:p.degree,longitude:['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'].indexOf(p.sign)*30+p.degree,retrograde:p.condition?.includes('retrograde')});
+          if(asc && planets.Sun && planets.Moon)html+=renderNatal({ascendant:{...asc,sign_deg:asc.degree},planets},natal.evidence.filter(i=>i.type==='natal_aspect'));
+        }
+        for(const name of ['Vimshottari Timing Agent','Career Agent','Multi-model Predictive Timing Agent']){
+          const agent=body.agents.find(a=>a.agent===name);if(agent)html+=renderAgent(agent);
+        }
+        return html||section('Reading unavailable','<p>No chart findings were returned. Please check your birth details and try again.</p>');
+      }
+      if(body.answer){
+        const answer=body.answer.primary;
+        if(answer?.text)return section('Your question','<p>'+esc(body.answer.question)+'</p>')+section('Your answer','<div class="answer-text">'+esc(answer.text)+'</div>')+(body.answer.verification?.text?section('Review','<div class="answer-text">'+esc(body.answer.verification.text)+'</div>'):'');
+        return section('AI answer unavailable','<p>AI answers are not enabled in this preview yet. Your calculated natal, career and timing readings are available.</p><button class="primary" onclick="runAgent(&quot;/api/agents/analyze&quot;)">Open my calculated reading</button>');
+      }
+      return renderAgent(body)||section('No findings','<p>No matching chart findings were returned.</p>');
+    }
+    async function runAgent(path, extra={}) {
+      const sequence=++requestSequence, title=TITLES[path]||'Your reading';
+      openReading(title,'<p role="status">Preparing your reading…</p>');
+      try{
+        const values=birthValues();
+        const response=await fetch(path+'?'+new URLSearchParams({...values,...extra}),{headers:{Accept:'application/json'}});
+        const body=await response.json();
+        if(!response.ok)throw new Error(body.error||'We could not calculate this reading. Please check your inputs.');
+        if(sequence!==requestSequence)return;
+        $('#report-content').innerHTML=renderReading(body);
+        $('#result').innerHTML='<p>'+esc(title)+' is ready.</p><button class="primary" onclick="document.querySelector(&quot;#reading-dialog&quot;).showModal()">Open reading ↗</button>';
+      }catch(error){
+        if(sequence!==requestSequence)return;
+        $('#report-content').innerHTML=section('Please check your details','<p>'+esc(error.message)+'</p>');
+      }
     }
     function compareCharts() {
-      const date = prompt('Second chart birth date (YYYY-MM-DD):'); if (!date) return;
-      const parts = date.split('-').map(Number);
-      if (parts.length !== 3 || parts.some(Number.isNaN)) { alert('Enter the date as YYYY-MM-DD.'); return; }
-      runAgent('/api/agents/compatibility', {b_year:parts[0], b_month:parts[1], b_day:parts[2]});
+      ++requestSequence;
+      openReading('Compare two charts', '<form class="report-form" onsubmit="submitCompatibility(event)"><p>Enter the second person’s birth details. The first chart uses the details on your dashboard.</p><div class="form-grid"><label>Birth date<input name="date" type="date" required></label><label>Birth time (optional)<input name="time" type="time"></label><label>UTC offset at birth<input name="offset" type="number" value="2" min="-12" max="14" step="0.25" required></label><label>Birth latitude<input name="latitude" type="number" value="37.9838" min="-89" max="89" step="any" required></label><label>Birth longitude<input name="longitude" type="number" value="23.7275" min="-180" max="180" step="any" required></label></div><p class="report-note">If the time is unknown, noon is used. Moon placement and aspects may be uncertain.</p><button class="primary" type="submit">Generate compatibility reading</button></form>');
     }
-    function exploreGeo() {
-      const coords = prompt('Location coordinates (latitude, longitude), e.g. 40.7128, -74.0060:'); if (!coords) return;
-      const parts = coords.split(',').map(Number);
-      if (parts.length !== 2 || parts.some(Number.isNaN)) { alert('Enter latitude and longitude separated by a comma.'); return; }
-      runAgent('/api/agents/geo', {target_latitude:parts[0], target_longitude:parts[1]});
+    function submitCompatibility(event){
+      event.preventDefault();const fields=new FormData(event.target),date=String(fields.get('date')).split('-'),time=String(fields.get('time')||'12:00').split(':');
+      runAgent('/api/agents/compatibility',{b_year:date[0],b_month:date[1],b_day:date[2],b_hour:time[0],b_minute:time[1],b_utc_offset:fields.get('offset'),b_latitude:fields.get('latitude'),b_longitude:fields.get('longitude')});
     }
-    function askChart() {
-      const question = document.querySelector('#question').value.trim();
-      if (!question) { document.querySelector('#question').focus(); return; }
-      runAgent('/api/agents/ask', {question});
+    function exploreGeo(){
+      ++requestSequence;
+      openReading('Explore a location','<form class="report-form" onsubmit="submitGeo(event)"><p>Compare how your whole-sign houses change at a different location.</p><div class="form-grid"><label>Destination latitude<input name="latitude" type="number" min="-89" max="89" step="any" placeholder="40.7128" required></label><label>Destination longitude<input name="longitude" type="number" min="-180" max="180" step="any" placeholder="-74.0060" required></label></div><button type="submit" class="primary">Generate location reading</button></form>');
     }
+    function submitGeo(event){event.preventDefault();const fields=new FormData(event.target);runAgent('/api/agents/geo',{target_latitude:fields.get('latitude'),target_longitude:fields.get('longitude')});}
+    function askChart(){const question=$('#question').value.trim()||$('#question').placeholder;$('#question').value=question;runAgent('/api/agents/ask',{question});}
+
   </script>
 </body>
 </html>
