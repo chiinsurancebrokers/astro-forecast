@@ -25,6 +25,7 @@ SIGNS = list(SUN_READINGS)
 
 def citation(source, pdf_page, printed_page, chapter):
     titles = {'white_guide': ('A Guide To Astrology', 'Fredrick White'),
+              'karma_ancient_egyptians': ('Astrology of the Ancient Egyptians', 'Karma'),
               'raphael_guide': ('The Guide to Astrology', 'Raphael')}
     title, author = titles[source]
     return {'source_id': source, 'title': title, 'author': author,
@@ -105,12 +106,12 @@ def build_book_natal_report(chart, latitude=None, longitude=None):
     return {'version': 2, 'basis': 'Western tropical, geocentric planetary positions',
             'basis_note': 'The main wheel uses the tropical zodiac with whole-sign houses as a platform display choice. Lahiri is available as a separate specialist view. House-specific book interpretations have not been applied. Aspect selection uses a platform limit of 5°, not Raphael’s complete orb tables.',
             'planets': planets, 'chart': tropical_chart, 'sections': sections,
-            'reading': synthesize_natal_reading(planets, aspects, index),
-            'coverage': 'Verified Sun passages for all twelve signs, natal reading method and major-aspect classifications from White and Raphael. Detailed Moon, Ascendant, house and planet-pair delineations are not yet curated.',
-            'other_books': 'Karma, Merton, Daath and Raleigh remain in the knowledge catalog but are not cited in this report. Heliocentric, medical and Hermetic material require separate interpretation methods.'}
+            'reading': synthesize_natal_reading(planets, aspects, index, tropical_chart),
+            'coverage': 'This reading currently uses checked passages from White, Raphael and, when applicable, Karma. It covers the Sun and selected planetary combinations, plus a limited rising-sign interpretation. A full reading of every planet and house is still being developed.',
+            'other_books': 'Karma: verified passages about the rising sign are included when they match your chart; wider coverage is still being checked. Merton: reads planetary positions from the Sun’s viewpoint, so it needs its own calculated specialist chart. Daath: discusses historical medical symbolism; it is not used to make claims about your health. Raleigh: supplies Hermetic philosophy rather than a ready-made personal chart reading. Their relevant material has not yet been integrated into this report.'}
 
 
-def synthesize_natal_reading(planets, aspects, sun_index):
+def synthesize_natal_reading(planets, aspects, sun_index, chart=None):
     """Editorial synthesis of verified passages, with explicit internal provenance.
 
     Match exact planet pairs before applying a delineation. Practical guidance is
@@ -139,6 +140,11 @@ def synthesize_natal_reading(planets, aspects, sun_index):
         f"With your Sun in {sun_sign}, the natal reading begins with the way you develop a sense of direction and express your individuality. " + text,
         'These qualities become meaningful through the choices you make. The rest of this reading considers the combinations that reinforce or complicate this central pattern, rather than treating your Sun sign as a complete description of you.'
     ], 'citations': [citation('white_guide', sun_index+8, sun_index+2, sun_sign)]}]
+    if chart and chart['ascendant']['sign'] in {'Taurus','Leo','Scorpio','Aquarius'} and chart['ascendant']['sign_deg'] >= 7:
+        sections.append({'title':'How you approach life','paragraphs':[
+            'Your rising sign adds a steadier quality to the way you approach situations. In Karma’s account, this group of rising signs is associated with patience, caution, constancy and determination. Alongside the Sun’s motivation, it describes the value of holding a course long enough to see what it can become.',
+            'The constructive balance is persistence with room to adapt. Commitment can help you build something lasting, while periodically reviewing your approach keeps determination from becoming resistance to change.'
+        ], 'citations':[citation('karma_ancient_egyptians',37,25,'The Rising Sign'),citation('karma_ancient_egyptians',38,26,'The Rising Sign, continued')]})
     matches = {(frozenset([a['a'], a['b']]), a['aspect']): a for a in aspects}
     # These are conservative paraphrases of the specific passages checked in the
     # uploaded Raphael scan; no house claim is imported from a different system.

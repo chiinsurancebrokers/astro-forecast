@@ -270,9 +270,29 @@
       const references=report.reading.references.map(c=>'<li>'+esc(c.author)+' · <em>'+esc(c.title)+'</em> · '+esc(c.chapter)+' · printed p. '+esc(c.printed_page)+' / PDF p. '+esc(c.pdf_page)+'</li>').join('');
       return section('Your natal reading','<p class="report-note">Western tropical astrology · A reading of your underlying life themes</p>')+narrative+
         '<details class="report-section"><summary>View your chart and calculation details</summary>'+(report.chart?renderNatal(report.chart):'')+'<p>'+esc(report.basis_note)+'</p></details>'+
-        specialist+section('Bibliography and interpretation notes','<ol>'+references+'</ol><p class="report-note">'+esc(report.reading.method)+'</p><details><summary>Current source coverage</summary><p>'+esc(report.coverage)+'</p><p>'+esc(report.other_books)+'</p></details>');
+        specialist+section('Bibliography and interpretation notes','<ol>'+references+'</ol><p class="report-note">'+esc(report.reading.method)+'</p><details><summary>How the books are used</summary><p>'+esc(report.coverage)+'</p><p>'+esc(report.other_books)+'</p></details>');
+    }
+    function renderCareerPlain(agent) {
+      const evidence=agent.evidence||[], placements=evidence.filter(i=>i.type==='career_house_placement');
+      const names=house=>placements.filter(i=>Number(i.house)===house).map(i=>i.planet);
+      const paragraphs=[];
+      if(names(10).length) paragraphs.push('Work and public responsibility are prominent in this reading. The useful question is where you want your contribution to be recognized, and what you are prepared to develop consistently over time.');
+      if(names(2).length) paragraphs.push('Your work also connects with the way you build security. Consider which skills and resources you can develop into a dependable foundation, alongside what gives the work personal value.');
+      if(names(11).length) paragraphs.push('There is an emphasis on the people and goals surrounding your work. Professional relationships, shared projects and longer-term aims offer useful areas to explore when deciding your next direction.');
+      const ruler=evidence.find(i=>i.type==='ascendant_ruler');
+      if(ruler && Number(ruler.house)===9)paragraphs.push('Learning and broadening your perspective add another thread. Further study, teaching, travel or work across cultures are possibilities to explore if they fit your experience and interests.');
+      if(!paragraphs.length)paragraphs.push('The calculated chart does not provide enough career indicators for a detailed reading yet.');
+      return section('Career & purpose',paragraphs.map(p=>'<p>'+esc(p)+'</p>').join('')+'<p class="report-note">This specialist uses the Lahiri chart. These are general interpretations of house themes, not yet a complete career reading from the uploaded books. They do not select a profession for you.</p><details><summary>View the chart factors behind this reading</summary>'+list(placements.map(i=>i.planet+' in '+i.sign+', house '+i.house))+'</details>');
+    }
+    function renderTimingPlain(agent) {
+      const descriptions={love:'affection and close connections',home_property:'home, living arrangements and family priorities',luxury_assets:'comfort, possessions and lifestyle choices',sex_chemistry:'attraction and intimacy',business:'work projects and business relationships',marriage_commitment:'commitment and expectations within a partnership',travel_foreign:'travel, learning and connections beyond your usual surroundings',money:'income, spending and financial priorities',career:'career direction and responsibilities',socialization:'friendships and social connections',earned_income:'income from your work'};
+      const windows=(agent.evidence||[]).filter(i=>i.type==='timing_window'||i.type==='monthly_activation');
+      const rows=windows.map(i=>{const areas=(i.signals||i.top||[]).slice(0,3).map(v=>descriptions[v.area]||nice(v.area));const d=new Date(i.month+'-01T12:00:00Z');const month=Number.isNaN(d.getTime())?i.month:new Intl.DateTimeFormat('en',{month:'long',year:'numeric',timeZone:'UTC'}).format(d);return '<article class="planet-row"><h4>'+esc(month)+'</h4><p>The calculated timing pattern gives more emphasis to '+esc(areas.join('; '))+'. Treat these as areas to review when considering your plans for this month.</p></article>';}).join('');
+      return section('Your timing outlook','<p>This calendar shows which life areas receive the most emphasis in the current calculations. It does not identify events that will happen. Read it alongside your own plans and circumstances.</p>'+rows+'<p class="report-note">Based on the existing Lahiri timing calculations. These monthly themes have not yet been synthesized using the full bibliography.</p>');
     }
     function renderAgent(agent) {
+      if(agent.agent==='Career Agent')return renderCareerPlain(agent);
+      if(['Multi-model Predictive Timing Agent','Transit Intelligence Agent'].includes(agent.agent))return renderTimingPlain(agent);
       const evidence=agent.evidence||[], rows=[];
       for(const item of evidence){
         switch(item.type){
