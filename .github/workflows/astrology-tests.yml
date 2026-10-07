@@ -1,0 +1,30 @@
+name: Astrology branch tests
+
+on:
+  push:
+    branches:
+      - feature/astrology-agents-v2
+    paths:
+      - "astro-forecast-batchfix/**"
+      - ".github/workflows/astrology-tests.yml"
+  pull_request:
+    paths:
+      - "astro-forecast-batchfix/**"
+      - ".github/workflows/astrology-tests.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: astro-forecast-batchfix
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run unit tests
+        run: python -m unittest discover -s tests -v
