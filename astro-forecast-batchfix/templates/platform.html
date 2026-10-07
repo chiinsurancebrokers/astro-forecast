@@ -242,8 +242,9 @@
     function chartWheel(chart) {
       const signs=['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
       const ascIndex=signs.indexOf(chart.ascendant.sign), origin=ascIndex*30;
+      const zodiac=chart.zodiac||'Lahiri sidereal';
       const point=(angle,r)=>{const a=angle*Math.PI/180;return [220+r*Math.cos(a),220-r*Math.sin(a)];};
-      let svg='<svg class="chart-wheel" viewBox="0 0 440 440" role="img" aria-label="Sidereal natal chart with twelve whole-sign houses"><title>Sidereal natal chart · Lahiri · Whole-sign houses</title><circle cx="220" cy="220" r="205" fill="#080e23" stroke="#e7c68d" stroke-width="1"/><circle cx="220" cy="220" r="156" fill="none" stroke="#68749a"/><circle cx="220" cy="220" r="105" fill="none" stroke="#354366"/>';
+      let svg='<svg class="chart-wheel" viewBox="0 0 440 440" role="img" aria-label="Natal chart with twelve whole-sign houses"><title>'+esc(zodiac)+' natal chart · Whole-sign houses</title><circle cx="220" cy="220" r="205" fill="#080e23" stroke="#e7c68d" stroke-width="1"/><circle cx="220" cy="220" r="156" fill="none" stroke="#68749a"/><circle cx="220" cy="220" r="105" fill="none" stroke="#354366"/>';
       for(let i=0;i<12;i++){
         const boundary=point(180-i*30,205), inner=point(180-i*30,105), label=point(165-i*30,181), house=point(165-i*30,124);
         svg+='<path d="M '+inner.join(' ')+' L '+boundary.join(' ')+'" stroke="#354366"/><text x="'+label[0]+'" y="'+label[1]+'" text-anchor="middle" dominant-baseline="middle" fill="#cdd7f1" font-size="10">'+esc(signs[(ascIndex+i)%12])+'</text><text x="'+house[0]+'" y="'+house[1]+'" text-anchor="middle" fill="#8e9bbc" font-size="11">'+(i+1)+'</text>';
@@ -252,14 +253,19 @@
         const pos=point(180-(Number(p.longitude)-origin),i%2?140:151);
         svg+='<text x="'+pos[0]+'" y="'+pos[1]+'" text-anchor="middle" dominant-baseline="middle" fill="#e7c68d" font-size="18"><title>'+esc(name+' in '+p.sign+' · house '+p.house)+'</title>'+esc(GLYPHS[name]||name.slice(0,2))+'</text>';
       });
-      svg+='<text x="220" y="213" text-anchor="middle" fill="#e7c68d" font-size="16">'+esc(chart.ascendant.sign)+' rising</text><text x="220" y="237" text-anchor="middle" fill="#a4b1cd" font-size="12">Lahiri · Whole sign</text></svg>';
+      svg+='<text x="220" y="213" text-anchor="middle" fill="#e7c68d" font-size="16">'+esc(chart.ascendant.sign)+' rising</text><text x="220" y="237" text-anchor="middle" fill="#a4b1cd" font-size="12">'+esc(zodiac)+' · Whole sign</text></svg>';
       return svg;
     }
     function renderNatal(chart, aspects=[]) {
       const asc=chart.ascendant, sun=chart.planets.Sun, moon=chart.planets.Moon;
-      const overview='<p>Your Ascendant is <strong>'+esc(asc.sign)+'</strong> at '+Number(asc.sign_deg).toFixed(1)+'°. Your Sun is in <strong>'+esc(sun.sign)+'</strong> and your Moon in <strong>'+esc(moon.sign)+'</strong>.</p><p>In traditional symbolism, '+esc(asc.sign)+' rising brings attention to '+esc(SIGN_THEMES[asc.sign])+'. The Sun adds themes of '+esc(SIGN_THEMES[sun.sign])+', while the Moon highlights '+esc(SIGN_THEMES[moon.sign])+'. Use these as prompts for reflection.</p>';
+      const overview='<p>Your Ascendant is <strong>'+esc(asc.sign)+'</strong> at '+Number(asc.sign_deg).toFixed(1)+'°. Your Sun is in <strong>'+esc(sun.sign)+'</strong> and your Moon in <strong>'+esc(moon.sign)+'</strong>.</p>';
       const planets='<div class="planet-list">'+Object.entries(chart.planets).map(([name,p])=>'<div class="planet-row"><strong>'+esc(name)+' · '+esc(p.sign)+' '+Number(p.sign_deg).toFixed(1)+'°</strong><p>House '+esc(p.house)+' — '+esc(HOUSE_THEMES[p.house])+'.'+(p.retrograde?' Retrograde.':'')+'</p>'+(p.nakshatra?'<p>'+esc(p.nakshatra)+' · Pada '+esc(p.pada)+'</p>':'')+'</div>').join('')+'</div>';
-      return section('Your natal pattern',chartWheel(chart)+overview)+section('Planet placements',planets)+(aspects.length?section('Major aspects',list(aspects.map(i=>i.planets.join(' and ')+' form a '+i.aspect+' with an orb of '+i.orb+'°.'))):'');
+      return section(chart.zodiac==='Tropical'?'Your Western natal chart':'Lahiri specialist chart',chartWheel(chart)+overview)+section('Planet placements',planets)+(aspects.length?section('Major aspects',list(aspects.map(i=>i.planets.join(' and ')+' form a '+i.aspect+' with an orb of '+i.orb+'°.'))):'');
+    }
+    function renderLahiri(chart) {return '<details class="report-section"><summary>Lahiri · specialist zodiac analysis</summary>'+renderNatal(chart)+'<p class="report-note">Sidereal Lahiri positions and nakshatras. The Western book passages above are not applied to these sign placements.</p></details>';}
+    function renderBookReport(report) {
+      if(!report)return '';
+      return (report.chart?renderNatal(report.chart):'')+section('Your natal report · from your books','<p><strong>'+esc(report.basis)+'</strong></p><p>'+esc(report.basis_note)+'</p>')+report.sections.map(item=>section(item.title,'<p><strong>'+esc(item.fact)+'</strong></p><p>'+esc(item.interpretation)+'</p><p>'+esc(item.reflection)+'</p>'+item.citations.map(c=>'<p class="report-note">Source: '+esc(c.author)+' · '+esc(c.title)+' · '+esc(c.chapter)+' · printed p. '+esc(c.printed_page)+' / PDF p. '+esc(c.pdf_page)+' · paraphrase</p>').join(''))).join('')+section('Book coverage','<p>'+esc(report.coverage)+'</p><p>'+esc(report.other_books)+'</p>');
     }
     function renderAgent(agent) {
       const evidence=agent.evidence||[], rows=[];
@@ -283,11 +289,11 @@
       return section(title,list(rows)+note);
     }
     function renderReading(body) {
-      if(body.planets && body.ascendant)return renderNatal(body);
+      if(body.planets && body.ascendant)return body.book_report?renderBookReport(body.book_report)+renderLahiri(body):renderNatal(body);
       if(body.agents){
         const natal=body.agents.find(a=>a.agent==='Natal / Genethliacal Agent');
         let html='';
-        if(natal){
+        if(natal && !body.natal_book_report){
           const asc=natal.evidence.find(i=>i.type==='ascendant'), planets={};
           natal.evidence.filter(i=>i.type==='planet_placement').forEach(p=>planets[p.planet]={...p,sign_deg:p.degree,longitude:['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'].indexOf(p.sign)*30+p.degree,retrograde:p.condition?.includes('retrograde')});
           if(asc && planets.Sun && planets.Moon)html+=renderNatal({ascendant:{...asc,sign_deg:asc.degree},planets},natal.evidence.filter(i=>i.type==='natal_aspect'));
@@ -295,6 +301,7 @@
         for(const name of ['Vimshottari Timing Agent','Career Agent','Multi-model Predictive Timing Agent']){
           const agent=body.agents.find(a=>a.agent===name);if(agent)html+=renderAgent(agent);
         }
+        html=renderBookReport(body.natal_book_report)+html+(body.lahiri_chart?renderLahiri(body.lahiri_chart):'');
         return html||section('Reading unavailable','<p>No chart findings were returned. Please check your birth details and try again.</p>');
       }
       if(body.answer){
@@ -309,7 +316,7 @@
       openReading(title,'<p role="status">Preparing your reading…</p>');
       try{
         const values=birthValues();
-        const response=await fetch(path+'?'+new URLSearchParams({...values,...extra}),{headers:{Accept:'application/json'}});
+        const response=await fetch(path+'?'+new URLSearchParams({...values,...(path==='/api/natal'?{book_report:1}:{}),...extra}),{headers:{Accept:'application/json'}});
         const body=await response.json();
         if(!response.ok)throw new Error(body.error||'We could not calculate this reading. Please check your inputs.');
         if(sequence!==requestSequence)return;
@@ -338,3 +345,4 @@
   </script>
 </body>
 </html>
+

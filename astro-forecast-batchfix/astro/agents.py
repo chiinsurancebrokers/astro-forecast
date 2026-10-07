@@ -13,6 +13,7 @@ from .dasha import build_mahadashas, current_period
 from .forecast import monthly_forecast, house_change_calendar
 from .knowledge_rules import rules_for
 from .book_agent import BookKnowledgeAgent
+from .natal_books import build_book_natal_report
 
 SIGN_RULERS = {
     "Aries": "Mars", "Taurus": "Venus", "Gemini": "Mercury", "Cancer": "Moon",
@@ -340,9 +341,12 @@ class AstrologyOrchestrator:
             "agent_count": len(specialists),
             "agents": [r.to_dict() for r in specialists],
             "book_knowledge": book_library,
+            "natal_book_report": build_book_natal_report(chart, latitude, longitude),
+            "lahiri_chart": chart,
             "guardrails": {
                 "medical_astrology": "historical/symbolic only; not diagnosis or medical advice",
                 "forecasting": "heuristic evidence is not validated prediction",
                 "systems": "Vedic, Western/traditional and medical-astrology rules stay source-tagged",
             },
         }
+

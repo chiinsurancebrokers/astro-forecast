@@ -12,6 +12,7 @@ from astro.synthesis import synthesize
 from astro.narrative import build_narrative_report, SECTION_ORDER
 from astro.agents import AstrologyOrchestrator
 from astro.book_library import BookKnowledgeLibrary
+from astro.natal_books import build_book_natal_report
 from astro.specialist_agents import (
     AskAgent, CareerAgent, CompatibilityAgent, GeoAstrologyAgent,
     PredictiveTimingEnsemble,
@@ -109,6 +110,8 @@ def api_natal():
         b["year"], b["month"], b["day"], b["hour"], b["minute"],
         b["utc_offset"], b["latitude"], b["longitude"],
     )
+    if request.args.get("book_report") == "1":
+        chart["book_report"] = build_book_natal_report(chart, b["latitude"], b["longitude"])
     return jsonify(chart)
 
 
@@ -460,3 +463,4 @@ def api_agent_timing():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=False)
+
