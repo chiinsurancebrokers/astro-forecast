@@ -272,14 +272,59 @@ class AstrologyOrchestrator:
     def run(self, chart, birth_dt, latitude, longitude, start, months=24,
             question="", outcomes=None, at_dt=None):
         at_dt = at_dt or datetime.now()
+        from .specialist_agents import (
+            AskAgent, CareerAgent, CompatibilityAgent, GeoAstrologyAgent,
+            PredictiveTimingEnsemble,
+        )
+
+        natal_result = self.natal.run(chart)
+        timing_result = self.timing.run(birth_dt, chart, at_dt)
+        transit_result = self.transit.run(
+            chart, birth_dt, latitude, longitude, start, months,
+        )
         specialists = [
-            self.natal.run(chart),
-            self.timing.run(birth_dt, chart, at_dt),
-            self.transit.run(chart, birth_dt, latitude, longitude, start, months),
+            natal_result,
+            timing_result,
+            transit_result,
             self.knowledge.run(chart),
             self.medical.run(chart),
             self.calibration.run(outcomes),
+            CareerAgent().run(chart),
         ]
+        monthly_scores = {
+            item["month"]: {
+                signal["area"]: signal["score"] for signal in item.get("top", [])
+            }
+            for item in transit_result.evidence
+            if item.get("type") == "monthly_activation"
+        }
+        transit_events = [
+            item for item in transit_result.evidence
+            if item.get("type") == "slow_planet_sign_change"
+        ]
+        specialists.append(PredictiveTimingEnsemble().run(
+            monthly_scores, timing_result.evidence, transit_events, outcomes,
+        ))
+        if question:
+            specialists.append(AskAgent().run(
+                question,
+                ["Natal / Genethliacal Agent", "Vimshottari Timing Agent",
+                 "Transit Intelligence Agent", "Career Agent",
+                 "Compatibility Agent", "GeoAstrology Agent"],
+            ))
+        if second_chart is not None:
+            specialists.append(CompatibilityAgent().run(chart, second_chart))
+        if geo_location is not None:
+            from .ephemeris import build_natal_chart
+            geo_birth = {
+                "year": birth_dt.year, "month": birth_dt.month, "day": birth_dt.day,
+                "hour": birth_dt.hour, "minute": birth_dt.minute,
+                "utc_offset": 0, "chart": chart,
+            }
+            specialists.append(GeoAstrologyAgent().run(
+                geo_birth, geo_location["latitude"], geo_location["longitude"],
+                build_natal_chart,
+            ))
         book_library = self.book_knowledge.run(
             question=question,
             chart=chart,
