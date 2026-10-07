@@ -369,7 +369,11 @@ def _build_prefixed_chart(prefix):
 def api_agent_compatibility():
     if not all(f"b_{key}" in request.args for key in ("year", "month", "day")):
         return jsonify({"error": "Provide b_year, b_month, and b_day for the second chart."}), 400
-    _, chart_a = _build_prefixed_chart("")
+    a = _parse_birth(request.args)
+    chart_a = build_natal_chart(
+        a["year"], a["month"], a["day"], a["hour"], a["minute"],
+        a["utc_offset"], a["latitude"], a["longitude"],
+    )
     _, chart_b = _build_prefixed_chart("b")
     return jsonify(CompatibilityAgent().run(chart_a, chart_b).to_dict())
 
