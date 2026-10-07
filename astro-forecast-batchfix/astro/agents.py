@@ -155,7 +155,8 @@ class TransitAgent:
             evidence.append({
                 "type": "monthly_activation",
                 "month": month,
-                "top": [{"area": a, "score": s} for a, s in ranked[:5]],\n                "scores": areas,
+                "top": [{"area": a, "score": s} for a, s in ranked[:5]],
+                "scores": areas,
             })
         evidence.extend({"type": "slow_planet_sign_change", **ev} for ev in changes)
         return AgentResult(
