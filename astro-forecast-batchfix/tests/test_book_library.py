@@ -76,6 +76,24 @@ class BookKnowledgeLibraryTests(unittest.TestCase):
     def test_private_curated_rules_reject_raw_text_and_system_mismatch(self):
         cases = [
             {
+                "id": "raleigh.test.bad-source",
+                "source": [],
+                "system": "HERMETIC_HISTORICAL",
+                "topics": ["motion"],
+                "locator": "page 4",
+                "summary": "A concise paraphrase of the historical source material.",
+                "keywords": ["motion"],
+            },
+            {
+                "id": "raleigh.test.bad-topics",
+                "source": "raleigh_hermetic",
+                "system": "HERMETIC_HISTORICAL",
+                "topics": [{}],
+                "locator": "page 4",
+                "summary": "A concise paraphrase of the historical source material.",
+                "keywords": ["motion"],
+            },
+            {
                 "id": "raleigh.test.raw",
                 "source": "raleigh_hermetic",
                 "system": "HERMETIC_HISTORICAL",
