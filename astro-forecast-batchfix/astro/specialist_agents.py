@@ -8,7 +8,22 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 from typing import Any
 
-from .agents import MAJOR_ASPECTS, SIGN_RULERS, _angle_delta
+from .ephemeris import SIGNS
+
+SIGN_RULERS = {
+    "Aries": "Mars", "Taurus": "Venus", "Gemini": "Mercury", "Cancer": "Moon",
+    "Leo": "Sun", "Virgo": "Mercury", "Libra": "Venus", "Scorpio": "Mars",
+    "Sagittarius": "Jupiter", "Capricorn": "Saturn", "Aquarius": "Saturn", "Pisces": "Jupiter",
+}
+MAJOR_ASPECTS = {
+    "conjunction": (0, 8), "sextile": (60, 5), "square": (90, 7),
+    "trine": (120, 7), "opposition": (180, 8),
+}
+
+
+def _angle_delta(a, b):
+    delta = abs((a - b) % 360)
+    return min(delta, 360 - delta)
 
 
 @dataclass
