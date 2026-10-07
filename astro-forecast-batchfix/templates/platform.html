@@ -213,8 +213,8 @@
     }
     function formatEvidence(body) {
       if (body.planets && body.ascendant) {
-        const lines = ['Natal chart · Ascendant: ' + body.ascendant.sign + ' ' + Number(body.ascendant.degree).toFixed(1) + '°'];
-        for (const [name, p] of Object.entries(body.planets)) lines.push(name + ': ' + p.sign + ' ' + Number(p.degree).toFixed(1) + '° · house ' + p.house);
+        const lines = ['Natal chart · Ascendant: ' + body.ascendant.sign + ' ' + Number(body.ascendant.sign_deg).toFixed(1) + '°'];
+        for (const [name, p] of Object.entries(body.planets)) lines.push(name + ': ' + p.sign + ' ' + Number(p.sign_deg).toFixed(1) + '° · house ' + p.house);
         return lines.join('\n');
       }
       if (body.agents) return body.agents.map(agent => agent.agent + ': ' + agent.evidence.length + ' evidence points').join('\n') + '\n\n' + (body.guardrails?.forecasting || '');
