@@ -156,6 +156,38 @@ git remote add origin https://github.com/<your-username>/<repo-name>.git
 git push -u origin main
 ```
 
+## Book Knowledge ingestion
+
+The source catalog distinguishes Western traditional astrology, heliocentric
+historical material, historical medical astrology, and Hermetic historical
+material. The extractor preserves source IDs, system tags, page spans, file
+hashes, and deterministic chunk IDs.
+
+Run extraction locally from the application directory:
+
+```bash
+python -m astro.book_ingest \
+  --input-dir /path/to/source-pdfs \
+  --output book_ingestion/private/source_chunks.jsonl
+```
+
+The output contains extracted source text and is private working data. It is
+excluded from Git and is not loaded by the public knowledge-search API. Review
+the page-level candidates and create a separate JSONL file of short paraphrased
+rules with an exact page or chapter locator. Validate that curated file with:
+
+```bash
+python -m astro.book_ingest --validate-rules /path/to/curated_rules.jsonl
+```
+
+Only validated paraphrased rules can be made available to the Book Knowledge
+Agent by setting `ASTRO_KNOWLEDGE_RULES_PATH` to a private, mounted JSONL file.
+The loader rejects raw `text`/`excerpt` fields, unknown sources, duplicate
+rule IDs, and system/provenance mismatches. Vedic, Western, heliocentric,
+medical, and Hermetic material remain separately tagged; medical material is
+included only when a request explicitly selects it. Pages with sparse extracted
+text are reported for OCR review rather than treated as successfully ingested.
+
 ## Project layout
 
 ```
