@@ -61,6 +61,9 @@ class BookIngestTests(unittest.TestCase):
             self.assertEqual(validate_curated_rules(path), [])
             path.write_text(json.dumps({**rule, "text": "raw excerpt"}) + "\n", encoding="utf-8")
             self.assertTrue(any("raw source text" in error for error in validate_curated_rules(path)))
+            for invalid in ({**rule, "source": []}, {**rule, "topics": [{}]}):
+                path.write_text(json.dumps(invalid) + "\n", encoding="utf-8")
+                self.assertTrue(validate_curated_rules(path))
 
 
 if __name__ == "__main__":
