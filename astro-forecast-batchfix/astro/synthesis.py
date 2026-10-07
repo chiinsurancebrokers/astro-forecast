@@ -19,6 +19,9 @@ stall the whole response indefinitely.
 """
 import os
 
+from .intelligence import format_natal_evidence
+from .source_guidance import get_source_guidance
+
 REQUEST_TIMEOUT_SECONDS = 45
 
 DEFAULT_ANTHROPIC_MODEL = "claude-sonnet-4-6"
@@ -112,6 +115,8 @@ def build_context(chart, dasha_info, monthly_scores, house_events, lang="en"):
                       f"{p['nakshatra']}{retro}")
     lines.append(f"Current Mahadasha: {dasha_info.get('current_mahadasha')}, "
                   f"current Antardasha: {dasha_info.get('current_antardasha')}.")
+    lines.append("")
+    lines.extend(format_natal_evidence(chart, dasha_info).splitlines())
 
     months = list(monthly_scores.keys())
     if months:
@@ -148,7 +153,10 @@ def call_claude_synthesis(question, context, lang="en"):
         resp = client.messages.create(
             model=model,
             max_tokens=1400,
-            system=SYNTHESIS_SYSTEM_PROMPT.get(lang, SYNTHESIS_SYSTEM_PROMPT["en"]),
+            system=(
+                SYNTHESIS_SYSTEM_PROMPT.get(lang, SYNTHESIS_SYSTEM_PROMPT["en"])
+                + "\n\n" + get_source_guidance(lang)
+            ),
             messages=[{
                 "role": "user",
                 "content": f"DATA:\n{context}\n\nQUESTION:\n{question}",
@@ -173,7 +181,10 @@ def call_chatgpt_verification(question, context, primary_text, lang="en"):
             model=model,
             max_tokens=1000,
             messages=[
-                {"role": "system", "content": VERIFICATION_SYSTEM_PROMPT.get(lang, VERIFICATION_SYSTEM_PROMPT["en"])},
+                {"role": "system", "content": (
+                    VERIFICATION_SYSTEM_PROMPT.get(lang, VERIFICATION_SYSTEM_PROMPT["en"])
+                    + "\n\n" + get_source_guidance(lang)
+                )},
                 {"role": "user", "content": (
                     f"DATA:\n{context}\n\nQUESTION:\n{question}\n\nANSWER TO VERIFY:\n{primary_text}"
                 )},
