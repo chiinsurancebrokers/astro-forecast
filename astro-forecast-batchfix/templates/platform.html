@@ -226,7 +226,7 @@
     const nice = value => String(value ?? '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
     const HOUSE_THEMES = {1:'identity and self-expression',2:'resources, values and income',3:'communication and learning',4:'home and foundations',5:'creativity and pleasure',6:'daily work and routines',7:'partnerships',8:'shared resources and change',9:'higher learning, travel and beliefs',10:'career and public life',11:'networks and long-term aims',12:'reflection and private life'};
     const SIGN_THEMES = {Aries:'initiative and independence',Taurus:'steadiness and tangible values',Gemini:'curiosity and communication',Cancer:'care and belonging',Leo:'creative expression and visibility',Virgo:'discernment and practical improvement',Libra:'balance and cooperation',Scorpio:'depth and transformation',Sagittarius:'exploration and meaning',Capricorn:'structure and long-term effort',Aquarius:'ideas and collective interests',Pisces:'imagination and sensitivity'};
-    const GLYPHS = {Sun:'☉',Moon:'☽',Mercury:'☿',Venus:'♀',Mars:'♂',Jupiter:'♃',Saturn:'♄',Rahu:'☊',Ketu:'☋'};
+    const GLYPHS = {Sun:'☉',Moon:'☽',Mercury:'☿',Venus:'♀',Mars:'♂',Jupiter:'♃',Saturn:'♄',Uranus:'♅',Neptune:'♆',Rahu:'☊',Ketu:'☋'};
     const TITLES = {'/api/natal':'Your natal reading','/api/agents/analyze':'Your chart reading','/api/agents/career':'Career & purpose','/api/agents/timing':'Timing intelligence','/api/agents/compatibility':'Compatibility reading','/api/agents/geo':'Location comparison','/api/agents/ask':'Ask your chart'};
     let requestSequence = 0;
     $('#today').textContent = 'Today · ' + new Intl.DateTimeFormat(undefined,{weekday:'short',month:'long',day:'numeric'}).format(new Date());
@@ -280,10 +280,14 @@
       if(!report)return '';
       if(!report.reading)return section('Reading unavailable','<p>The narrative could not be prepared. Please try again.</p>');
       const narrative=report.reading.sections.map(item=>section(item.title,item.paragraphs.map(p=>'<p>'+esc(p)+'</p>').join(''))).join('');
+      const planetary=(report.reading.planet_sections||[]).map(item=>section(item.title,item.paragraphs.map(p=>'<p>'+esc(p)+'</p>').join(''))).join('');
+      const houses=(report.reading.house_sections||[]).map(item=>'<details class="report-section"><summary>'+esc(item.title)+'</summary>'+item.paragraphs.map(p=>'<p>'+esc(p)+'</p>').join('')+'</details>').join('');
       const references=report.reading.references.map(c=>'<li>'+esc(c.author)+' · <em>'+esc(c.title)+'</em> · '+esc(c.chapter)+' · printed p. '+esc(c.printed_page)+' / PDF p. '+esc(c.pdf_page)+'</li>').join('');
       return section('Your natal reading','<p class="report-note">Western tropical astrology · A reading of your underlying life themes</p>')+narrative+
+        (planetary?section('Your planets: character and expression',planetary):'')+
+        (houses?section('Your twelve houses','<p>Each house describes an area of life. Open a house to see its planets and ruling connections.</p>'+houses):section('Houses require a birth location','<p>Planetary sign readings are available, but houses and their rulers need a birth location and a reliable birth time.</p>'))+
         '<details class="report-section"><summary>View your chart and calculation details</summary>'+(report.chart?renderNatal(report.chart):'')+'<p>'+esc(report.basis_note)+'</p></details>'+
-        specialist+(report.specialists?renderHistorical(report.specialists):'')+section('Bibliography and interpretation notes','<ol>'+references+'</ol><p class="report-note">'+esc(report.reading.method)+'</p><details><summary>How the books are used</summary><p>'+esc(report.coverage)+'</p><p>'+esc(report.other_books)+'</p></details>')+(report.specialists?renderHistoricalBibliography(report.specialists):'');
+        specialist+(report.specialists?renderHistorical(report.specialists):'')+section('Bibliography and interpretation notes','<ol>'+references+'</ol><p class="report-note">'+esc(report.reading.method)+'</p><p class="report-note">'+esc(report.reading.delineation_note||'')+'</p><details><summary>How the books are used</summary><p>'+esc(report.coverage)+'</p><p>'+esc(report.other_books)+'</p></details>')+(report.specialists?renderHistoricalBibliography(report.specialists):'');
     }
     function renderCareerPlain(agent) {
       const evidence=agent.evidence||[], placements=evidence.filter(i=>i.type==='career_house_placement');

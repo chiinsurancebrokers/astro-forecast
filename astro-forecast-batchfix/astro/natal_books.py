@@ -6,6 +6,7 @@ one-based scan pages, which can differ from the printed pagination.
 import swisseph as swe
 from .ephemeris import PLANET_IDS, sign_of, whole_sign_house_of
 from .historical_specialists import run_historical_specialists
+from .western_delineation import build_western_delineation
 
 SUN_READINGS = {
     'Aries': 'White associates this placement with independence, determination and a preference for leading. He also describes quick reactions tempered by a readiness to forgive.',
@@ -37,22 +38,24 @@ def citation(source, pdf_page, printed_page, chapter):
 def build_book_natal_report(chart, latitude=None, longitude=None):
     jd = chart['julian_day']
     # Explicit tropical calculations; never reinterpret sidereal sign names as
-    # the seasonal signs used in these scans. Houses remain absent on purpose.
+    # the seasonal signs used in these scans. Houses require an explicit birth location; absent locations never receive invented cusps.
     planets = {}
-    for name, pid in PLANET_IDS.items():
+    for name, pid in {**PLANET_IDS, "Uranus": swe.URANUS, "Neptune": swe.NEPTUNE}.items():
         if name == 'Rahu':
             continue
         values, _ = swe.calc_ut(jd, pid, swe.FLG_MOSEPH | swe.FLG_SPEED)
         sign, degree = sign_of(values[0])
-        planets[name] = {'longitude': values[0], 'sign': sign, 'sign_deg': degree}
+        planets[name] = {'longitude': values[0], 'sign': sign, 'sign_deg': degree, 'retrograde': values[3] < 0}
     tropical_chart = None
     if latitude is not None and longitude is not None:
-        _, axes = swe.houses_ex(jd, latitude, longitude, b'W', swe.FLG_MOSEPH)
+        cusps, axes = swe.houses_ex(jd, latitude, longitude, b'W', swe.FLG_MOSEPH)
         asc_sign, asc_degree = sign_of(axes[0])
         for placement in planets.values():
             placement['house'] = whole_sign_house_of(placement['sign'], asc_sign)
         tropical_chart = {'julian_day': jd, 'zodiac': 'Tropical', 'house_system': 'Whole sign',
                           'ascendant': {'longitude': axes[0], 'sign': asc_sign, 'sign_deg': asc_degree},
+                          'midheaven': {'longitude': axes[1], 'sign': sign_of(axes[1])[0], 'sign_deg': sign_of(axes[1])[1]},
+                          'house_cusps': list(cusps),
                           'planets': planets}
     sun = planets['Sun']
     index = SIGNS.index(sun['sign'])
@@ -104,12 +107,12 @@ def build_book_natal_report(chart, latitude=None, longitude=None):
                          'interpretation': meaning + ' This is the author’s historical classification, not a forecast of an event.',
                          'reflection': 'This report does not yet apply the author’s detailed planet-pair delineation.',
                          'citations': [citation('raphael_guide', 10, 6, 'Of the Nature of the Aspects')]})
-    return {'version': 2, 'basis': 'Western tropical, geocentric planetary positions',
-            'basis_note': 'The main wheel uses the tropical zodiac with whole-sign houses as a platform display choice. Lahiri is available as a separate specialist view. House-specific book interpretations have not been applied. Aspect selection uses a platform limit of 5°, not Raphael’s complete orb tables.',
+    return {'version': 3, 'basis': 'Western tropical, geocentric planetary positions',
+            'basis_note': 'The main wheel uses the tropical zodiac with whole-sign houses as a platform display choice. Lahiri is available as a separate specialist view. House topics, selected planet-in-house passages and rulership are now interpreted. Whole-sign cusps and editorial ruler links are platform choices, not a reproduction of either book’s complete historical cusp method. The astronomical Midheaven is recorded separately from the whole-sign tenth house. Aspect selection uses a platform limit of 5°, not Raphael’s complete orb tables.',
             'planets': planets, 'chart': tropical_chart, 'sections': sections,
             'reading': synthesize_natal_reading(planets, aspects, index, tropical_chart),
             'specialists': run_historical_specialists(chart),
-            'coverage': 'This reading currently uses checked passages from White, Raphael and, when applicable, Karma. It covers the Sun and selected planetary combinations, plus a limited rising-sign interpretation. A full reading of every planet and house is still being developed.',
+            'coverage': 'This reading currently uses checked passages from White, Raphael and, when applicable, Karma. It covers the Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn, Uranus and Neptune, selected planetary combinations, all twelve house topics and their rulers when a birth location is available. Selected planet-in-house passages have been verified; an exhaustive delineation of every combination is not claimed. Pluto is not covered by these books.',
             'other_books': 'Merton, Daath and Raleigh now have separate specialist sections below the main reading. Each explains its method, calculated evidence or reflection exercise, and current coverage. Further passages from all six books are still being checked.'}
 
 
@@ -170,19 +173,23 @@ def synthesize_natal_reading(planets, aspects, sun_index, chart=None):
             sections.append({'title': title, 'paragraphs': [interpretation, guidance],
                              'evidence': found,
                              'citations': [citation('raphael_guide',page,printed, 'Conjunctions and Aspects of ' + {64:'Sun',54:'Saturn',61:'Mars',58:'Jupiter'}[page])]})
-    if planets['Mercury']['sign'] == 'Aquarius':
-        sections.append({'title':'A mind drawn to understanding', 'paragraphs':[
-            'Mercury in Aquarius develops the intellectual theme further. The source describes an interest in study, scientific subjects, observation and reasoning, together with an appreciation of solitude or learned company. You may therefore recognize a need to understand things for yourself before accepting an explanation.',
-            'A constructive expression is to turn observation into knowledge you can use and share. Time to think independently can serve your wider relationships and work when it leads back into clear communication.'
-        ], 'citations':[citation('white_guide',39,33,'Mercury in Aquarius')]})
     sections.append({'title':'Bringing the reading together','paragraphs':[
         'The overall picture should be read as a pattern of capacities and tensions, not a fixed script. Start with the central motivation described above, then consider how the intellectual, relational and supportive combinations fit your lived experience. Where two themes differ, the task is to find a way for both to be expressed rather than allowing one to dominate.',
         'This is a natal reading of enduring themes. A forecast for a specific period requires a separate timing analysis tied to dates; the birth chart alone does not establish when a development will occur.'
     ],'citations':[citation('raphael_guide',76,72,'How to Judge a Nativity'),citation('white_guide',46,40,'The Radix')]})
+    delineation = None
+    if all('sign_deg' in p for p in planets.values()):
+        delineation = build_western_delineation(planets, chart, aspects, citation, SUN_READINGS)
+        if delineation['overview']:
+            sections.insert(1,delineation['overview'])
     references = []
-    for section in sections:
+    reference_sections = sections + (delineation['planet_sections'] + delineation['house_sections'] if delineation else [])
+    for section in reference_sections:
         for c in section['citations']:
             if c not in references:
                 references.append(c)
     return {'sections': sections, 'references': references,
-            'method': 'Source-based editorial synthesis. The first paragraph of each interpretive section paraphrases matched historical material; practical guidance is an editorial application. Historical claims of guaranteed events, illness or moral character are excluded. Only verified passages are used; this is not yet an exhaustive reading of every placement.'}
+            'planet_sections': delineation['planet_sections'] if delineation else [],
+            'house_sections': delineation['house_sections'] if delineation else [],
+            'delineation_note': delineation['method_note'] if delineation else '',
+            'method': 'Source-based editorial synthesis. Matched sign traits, house topics, selected planet-in-house descriptions and aspect combinations paraphrase historical material. Their synthesis, practical guidance and ruler-to-house connections are editorial applications. Historical claims of guaranteed events, illness or moral character are excluded. A missing or unsuitable source passage is disclosed instead of replaced by an invented interpretation. This is not a complete reproduction of either author’s methods.'}

@@ -32,3 +32,12 @@ assert(evaluate('renderAgent(career)').includes('Work and public responsibility'
 sandbox.timing={agent:'Multi-model Predictive Timing Agent',evidence:[{type:'timing_window',month:'2026-10',signals:[{area:'sex_chemistry'}]}]};
 assert(evaluate('renderAgent(timing)').includes('attraction and intimacy'));
 assert(!evaluate('renderAgent(timing)').includes('Sex Chemistry'));
+
+// Planet and house analysis remains readable and precedes the bibliography.
+sandbox.detailedReport={reading:{sections:[],planet_sections:[{title:'Moon · Temperament',paragraphs:['Moon in Capricorn, house 9.','A considered reading.']}],house_sections:[{title:'House 9 · Study',paragraphs:['Study and wider horizons.','Ruler connection <script>unsafe</script>']}],references:[],method:'Source synthesis',delineation_note:'Whole-sign interpretation'},basis_note:'Tropical basis'};
+const detailedHtml=evaluate('renderBookReport(detailedReport)');
+assert(detailedHtml.includes('Your planets: character and expression'));
+assert(detailedHtml.includes('Your twelve houses'));
+assert(detailedHtml.includes('<summary>House 9 · Study</summary>'));
+assert(detailedHtml.indexOf('A considered reading.') < detailedHtml.indexOf('Bibliography and interpretation notes'));
+assert(detailedHtml.includes('&lt;script&gt;'));assert(!detailedHtml.includes('<script>'));
