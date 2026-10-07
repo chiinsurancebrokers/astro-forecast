@@ -11,6 +11,7 @@ from astro.report import build_pdf_report, build_narrative_pdf
 from astro.synthesis import synthesize
 from astro.narrative import build_narrative_report, SECTION_ORDER
 from astro.agents import AstrologyOrchestrator
+from astro.book_library import BookKnowledgeLibrary
 
 app = Flask(__name__)
 init_ephemeris()
@@ -281,6 +282,39 @@ def api_narrative_pdf():
     filename = f"narrative_{b['year']}-{b['month']:02d}-{b['day']:02d}_{provider}_{lang}.pdf"
     return send_file(out_path, mimetype="application/pdf", as_attachment=True,
                       download_name=filename)
+
+
+@app.route("/api/knowledge/sources")
+def api_knowledge_sources():
+    library = BookKnowledgeLibrary()
+    return jsonify({
+        "sources": library.list_sources(),
+        "topics": library.topics(),
+    })
+
+
+@app.route("/api/knowledge/search")
+def api_knowledge_search():
+    library = BookKnowledgeLibrary()
+    query = request.args.get("q", "").strip()
+    topics = [x.strip() for x in request.args.get("topics", "").split(",") if x.strip()]
+    systems = [x.strip() for x in request.args.get("systems", "").split(",") if x.strip()]
+    source_ids = [x.strip() for x in request.args.get("sources", "").split(",") if x.strip()]
+    limit = max(1, min(int(request.args.get("limit", 8)), 50))
+
+    hits = library.search(
+        query=query,
+        topics=topics,
+        systems=systems,
+        source_ids=source_ids,
+        limit=limit,
+    )
+    return jsonify({
+        "query": query,
+        "count": len(hits),
+        "hits": [h.to_dict() for h in hits],
+        "context": library.context_block(hits),
+    })
 
 
 @app.route("/api/agents/analyze")
