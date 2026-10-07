@@ -7,6 +7,11 @@ class SpecialistRouteTests(unittest.TestCase):
     def setUp(self):
         self.client = app.test_client()
 
+    def test_premium_platform_preview_isolated_route(self):
+        response = self.client.get("/platform")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"Your sky, understood.", response.data)
+
     def test_ask_requires_question(self):
         response = self.client.get("/api/agents/ask")
         self.assertEqual(response.status_code, 400)
