@@ -5,8 +5,11 @@ topic tags, source/system filters and lightweight lexical scoring. The interface
 is intentionally stable so an embedding/vector backend can replace the scorer
 later without changing the agents.
 """
+import json
+import os
 import re
 from dataclasses import dataclass, asdict
+from pathlib import Path
 from typing import Iterable
 
 from .book_corpus import SOURCES, ENTRIES, TOPIC_ALIASES
@@ -40,9 +43,48 @@ class KnowledgeHit:
 
 
 class BookKnowledgeLibrary:
-    def __init__(self, entries=None, sources=None):
-        self.entries = list(entries or ENTRIES)
-        self.sources = dict(sources or SOURCES)
+    def __init__(self, entries=None, sources=None, rules_path=None):
+        self.entries = list(ENTRIES if entries is None else entries)
+        self.sources = dict(SOURCES if sources is None else sources)
+        configured_path = rules_path or os.environ.get("ASTRO_KNOWLEDGE_RULES_PATH")
+        if configured_path:
+            self.entries.extend(self._load_curated_rules(Path(configured_path), self.sources))
+
+    @staticmethod
+    def _load_curated_rules(path, sources):
+        """Load approved paraphrased rules from private or deployment-mounted JSONL."""
+        required = {"id", "source", "system", "topics", "locator", "summary", "keywords"}
+        loaded = []
+        seen_ids = {entry.get("id") for entry in ENTRIES}
+        with path.open(encoding="utf-8") as stream:
+            for line_number, line in enumerate(stream, start=1):
+                if not line.strip():
+                    continue
+                try:
+                    rule = json.loads(line)
+                except json.JSONDecodeError as exc:
+                    raise ValueError(f"{path}:{line_number}: invalid JSON") from exc
+                if not isinstance(rule, dict):
+                    raise ValueError(f"{path}:{line_number}: each rule must be a JSON object")
+                missing = sorted(required - set(rule))
+                if missing:
+                    raise ValueError(f"{path}:{line_number}: missing fields: {', '.join(missing)}")
+                if "text" in rule or "excerpt" in rule:
+                    raise ValueError(f"{path}:{line_number}: raw source text cannot be loaded as a rule")
+                source = sources.get(rule["source"])
+                if source is None or source.get("system") != rule["system"]:
+                    raise ValueError(f"{path}:{line_number}: source/system provenance mismatch")
+                if rule["id"] in seen_ids:
+                    raise ValueError(f"{path}:{line_number}: duplicate rule id {rule['id']}")
+                if not isinstance(rule["topics"], list) or not rule["topics"]:
+                    raise ValueError(f"{path}:{line_number}: topics must be a non-empty list")
+                if not isinstance(rule["summary"], str) or not 20 <= len(rule["summary"]) <= 600:
+                    raise ValueError(f"{path}:{line_number}: summary must be a 20-600 character paraphrase")
+                if not isinstance(rule["keywords"], list):
+                    raise ValueError(f"{path}:{line_number}: keywords must be a list")
+                seen_ids.add(rule["id"])
+                loaded.append(rule)
+        return loaded
 
     def list_sources(self):
         return [{"id": sid, **meta} for sid, meta in self.sources.items()]
