@@ -47,12 +47,12 @@ def run_historical_specialists(chart):
   'scope':'Calculated heliocentric chart with verified regional symbolism. Detailed heliocentric planet-pair readings are not yet covered.'}
  # Daath's method checks several conditions together. This descriptive inspection
  # intentionally does not claim to implement his six formal strength measures.
- retro=[name for name,p in chart['planets'].items() if p.get('retrograde') and name not in ('Rahu','Ketu')]
+ retro=[name for name,p in chart.get('planets', {}).items() if p.get('retrograde') and name not in ('Rahu','Ketu')]
  daath={'id':'daath','title':'Daath · Reading planetary condition in context',
   'basis':'Historical reading method applied to the separate Lahiri chart',
   'paragraphs':[
    'Daath’s useful contribution here is a method: do not judge a planet from one placement alone. His discussion considers position, aspects, motion and other kinds of strength together.',
-   ('The birth calculation marks '+', '.join(retro)+' as retrograde. This describes apparent motion from Earth; it does not establish a weakness, illness or outcome.' if retro else 'The birth calculation does not mark the classical planets as retrograde. This is one chart fact, not a verdict on their overall strength.'),
+   ('Planetary motion data is unavailable in this report. A full birth-chart calculation is needed before assessing this condition.' if not chart.get('planets') else 'The birth calculation marks '+', '.join(retro)+' as retrograde. This describes apparent motion from Earth; it does not establish a weakness, illness or outcome.' if retro else 'The birth calculation does not mark the classical planets as retrograde. This is one chart fact, not a verdict on their overall strength.'),
    'Use this specialist to understand why a balanced reading considers several factors before reaching a conclusion. The book’s physiological correspondences are kept as historical study material and are not converted into claims about your health.'
   ],'evidence':{'retrograde_planets':retro,'formal_strength_score':None},
   'references':[reference('daath_medical','Medical Astrology','Heinrich Daath',77,65,'Gauging Planetary Strength'),reference('daath_medical','Medical Astrology','Heinrich Daath',78,66,'Aspect and Positional Strength')],
