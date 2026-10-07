@@ -10,6 +10,9 @@ import argparse
 import hashlib
 import json
 import re
+import shutil
+import subprocess
+import tempfile
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Iterable, Sequence
@@ -160,8 +163,32 @@ def build_chunks(
     return chunks
 
 
+def _ocr_page(pdf_path: Path, page_number: int) -> str:
+    """OCR one sparse page when Poppler and Tesseract are installed."""
+    if not shutil.which("pdftoppm") or not shutil.which("tesseract"):
+        return ""
+    with tempfile.TemporaryDirectory(prefix="astro-book-ocr-") as directory:
+        prefix = Path(directory) / "page"
+        render = subprocess.run(
+            [
+                "pdftoppm", "-f", str(page_number), "-l", str(page_number),
+                "-r", "180", "-png", "-singlefile", str(pdf_path), str(prefix),
+            ],
+            capture_output=True, text=True, timeout=120, check=False,
+        )
+        image_path = prefix.with_suffix(".png")
+        if render.returncode != 0 or not image_path.is_file():
+            return ""
+        result = subprocess.run(
+            ["tesseract", str(image_path), "stdout", "-l", "eng", "--psm", "6"],
+            capture_output=True, text=True, timeout=120, check=False,
+        )
+        return result.stdout if result.returncode == 0 else ""
+
+
 def extract_pdf(path: Path, source: SourceDefinition, max_words: int = 350,
-                overlap_words: int = 40) -> tuple[list[BookChunk], list[int], int]:
+                overlap_words: int = 40, ocr_sparse: bool = True
+                ) -> tuple[list[BookChunk], list[int], int, list[int]]:
     try:
         from pypdf import PdfReader
     except ImportError as exc:
@@ -170,19 +197,28 @@ def extract_pdf(path: Path, source: SourceDefinition, max_words: int = 350,
     reader = PdfReader(str(path), strict=False)
     page_texts = []
     sparse_pages = []
+    recovered_pages = []
+    ocr_available = ocr_sparse and shutil.which("pdftoppm") and shutil.which("tesseract")
     for index, page in enumerate(reader.pages, start=1):
         text = page.extract_text(extraction_mode="layout") or ""
         cleaned = re.sub(r"[\t\r\f]+", " ", text)
         cleaned = re.sub(r" *\n *", "\n", cleaned)
-        page_texts.append((index, cleaned))
         if len(WORD_RE.findall(cleaned)) < 20:
-            sparse_pages.append(index)
+            if ocr_available:
+                ocr_text = _ocr_page(path, index)
+                if len(WORD_RE.findall(ocr_text)) > len(WORD_RE.findall(cleaned)):
+                    cleaned = re.sub(r"[\t\r\f]+", " ", ocr_text)
+                    cleaned = re.sub(r" *\n *", "\n", cleaned)
+                    recovered_pages.append(index)
+            if len(WORD_RE.findall(cleaned)) < 20:
+                sparse_pages.append(index)
+        page_texts.append((index, cleaned))
 
     chunks = build_chunks(
         page_texts, source, sha256_file(path), max_words=max_words,
         overlap_words=overlap_words,
     )
-    return chunks, sparse_pages, len(reader.pages)
+    return chunks, sparse_pages, len(reader.pages), recovered_pages
 
 
 def write_jsonl(chunks: Iterable[BookChunk], output: Path) -> int:
@@ -195,7 +231,7 @@ def write_jsonl(chunks: Iterable[BookChunk], output: Path) -> int:
     return count
 
 
-def ingest_directory(input_dir: Path, output: Path) -> dict:
+def ingest_directory(input_dir: Path, output: Path, ocr_sparse: bool = True) -> dict:
     input_dir = input_dir.expanduser().resolve()
     all_chunks = []
     report = []
@@ -204,7 +240,9 @@ def ingest_directory(input_dir: Path, output: Path) -> dict:
         if not pdf_path.is_file():
             report.append({"source_id": source.source_id, "status": "missing"})
             continue
-        chunks, sparse_pages, page_count = extract_pdf(pdf_path, source)
+        chunks, sparse_pages, page_count, recovered_pages = extract_pdf(
+            pdf_path, source, ocr_sparse=ocr_sparse
+        )
         all_chunks.extend(chunks)
         report.append({
             "source_id": source.source_id,
@@ -212,6 +250,8 @@ def ingest_directory(input_dir: Path, output: Path) -> dict:
             "pages": page_count,
             "chunks": len(chunks),
             "sparse_pages": sparse_pages,
+            "ocr_recovered_pages": recovered_pages,
+            "ocr_attempted": bool(ocr_sparse and shutil.which("pdftoppm") and shutil.which("tesseract")),
             "sha256": sha256_file(pdf_path),
         })
     total = write_jsonl(all_chunks, output)
@@ -269,6 +309,7 @@ def main(argv=None):
     parser.add_argument("--input-dir", type=Path, help="Folder containing the uploaded source PDFs")
     parser.add_argument("--output", type=Path, help="Private JSONL path for extracted review candidates")
     parser.add_argument("--validate-rules", type=Path, help="Validate a curated, paraphrased rules JSONL file")
+    parser.add_argument("--no-ocr", action="store_true", help="Skip OCR fallback for sparse pages")
     args = parser.parse_args(argv)
 
     if args.validate_rules:
@@ -281,7 +322,7 @@ def main(argv=None):
 
     if not args.input_dir or not args.output:
         parser.error("provide --input-dir and --output, or use --validate-rules")
-    report = ingest_directory(args.input_dir, args.output)
+    report = ingest_directory(args.input_dir, args.output, ocr_sparse=not args.no_ocr)
     print(json.dumps(report, ensure_ascii=False, indent=2))
     return 0
 
