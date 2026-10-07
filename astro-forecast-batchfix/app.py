@@ -345,6 +345,7 @@ def api_agents_analyze():
         start=start,
         months=months,
         question=question,
+        utc_offset=b["utc_offset"],
     )
     return jsonify(bundle)
 
