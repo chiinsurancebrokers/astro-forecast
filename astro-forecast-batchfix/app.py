@@ -464,6 +464,15 @@ def api_agent_timing():
 
 
 
+@app.route('/api/agents/life-periods')
+def api_life_periods():
+    b = _parse_birth(request.args)
+    chart = build_natal_chart(b['year'],b['month'],b['day'],b['hour'],b['minute'],
+                             b['utc_offset'],b['latitude'],b['longitude'])
+    report = build_book_natal_report(chart,b['latitude'],b['longitude'])
+    return jsonify({'life_report':report['life_report']})
+
+
 @app.route('/api/platform/plans')
 def api_platform_plans():
     return jsonify(plan_catalogue())

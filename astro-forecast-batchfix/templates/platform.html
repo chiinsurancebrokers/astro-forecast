@@ -175,8 +175,8 @@
         <article class="card timing" id="timing">
           <div class="timing-head"><div class="eyebrow">Timing intelligence</div><span class="status">Evidence-led</span></div>
           <h2>See the signals,<br>not just the stars.</h2>
-          <p>Review monthly transit themes alongside Vimshottari periods. Every signal is labeled by method and calibration status.</p>
-          <div class="timing-foot"><span class="chip">Transits</span><span class="chip">Planetary periods</span><span class="chip">Source-aware</span><button class="primary" onclick="runAgent('/api/agents/timing')">Open timing report ↗</button></div>
+          <p>Explore dated transitions, a five-year outlook and practical preparation. Western transits and Lahiri periods remain clearly separated.</p>
+          <div class="timing-foot"><span class="chip">Transits</span><span class="chip">Planetary periods</span><span class="chip">Source-aware</span><button class="primary" onclick="runAgent('/api/agents/life-periods')">Open life chapters ↗</button></div>
         </article>
         <div class="section-head" id="explore"><h2>Explore your chart</h2><a href="#chart">Set up birth details&nbsp; ↗</a></div>
         <article class="card feature"><div class="icon">☉</div><h3>Natal intelligence</h3><p>Planet placements, dignity, aspects and house themes.</p><button onclick="runAgent('/api/natal')">Build natal chart&nbsp; ↗</button></article>
@@ -227,7 +227,7 @@
     const HOUSE_THEMES = {1:'identity and self-expression',2:'resources, values and income',3:'communication and learning',4:'home and foundations',5:'creativity and pleasure',6:'daily work and routines',7:'partnerships',8:'shared resources and change',9:'higher learning, travel and beliefs',10:'career and public life',11:'networks and long-term aims',12:'reflection and private life'};
     const SIGN_THEMES = {Aries:'initiative and independence',Taurus:'steadiness and tangible values',Gemini:'curiosity and communication',Cancer:'care and belonging',Leo:'creative expression and visibility',Virgo:'discernment and practical improvement',Libra:'balance and cooperation',Scorpio:'depth and transformation',Sagittarius:'exploration and meaning',Capricorn:'structure and long-term effort',Aquarius:'ideas and collective interests',Pisces:'imagination and sensitivity'};
     const GLYPHS = {Sun:'☉',Moon:'☽',Mercury:'☿',Venus:'♀',Mars:'♂',Jupiter:'♃',Saturn:'♄',Uranus:'♅',Neptune:'♆',Rahu:'☊',Ketu:'☋'};
-    const TITLES = {'/api/natal':'Your natal reading','/api/agents/analyze':'Your chart reading','/api/agents/career':'Career & purpose','/api/agents/timing':'Timing intelligence','/api/agents/compatibility':'Compatibility reading','/api/agents/geo':'Location comparison','/api/agents/ask':'Ask your chart'};
+    const TITLES = {'/api/natal':'Your natal reading','/api/agents/analyze':'Your chart reading','/api/agents/career':'Career & purpose','/api/agents/timing':'Timing intelligence','/api/agents/life-periods':'Your life chapters','/api/agents/compatibility':'Compatibility reading','/api/agents/geo':'Location comparison','/api/agents/ask':'Ask your chart'};
     let requestSequence = 0;
     $('#today').textContent = 'Today · ' + new Intl.DateTimeFormat(undefined,{weekday:'short',month:'long',day:'numeric'}).format(new Date());
     function birthValues() {
@@ -276,6 +276,24 @@
     function renderHistoricalBibliography(reports) {
       return section('Specialist bibliography','<ol>'+reports.flatMap(r=>r.references).map(c=>'<li>'+esc(c.author)+' · <em>'+esc(c.title)+'</em> · '+esc(c.chapter)+' · printed p. '+esc(c.printed_page)+' / PDF p. '+esc(c.pdf_page)+'</li>').join('')+'</ol>');
     }
+    function readableDate(value) {
+      const d=new Date(value+'T12:00:00Z');
+      return Number.isNaN(d.getTime())?value:new Intl.DateTimeFormat('en-GB',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'}).format(d);
+    }
+    function renderLifeReport(report, compact=false, includeReferences=true) {
+      if(!report)return '';
+      const chapter=c=>section(c.planet+' · '+c.title,'<p class="report-note">'+esc(readableDate(c.start))+' – '+esc(readableDate(c.end))+(c.end_is_horizon?' · report horizon':'')+'</p>'+c.paragraphs.map(p=>'<p>'+esc(p)+'</p>').join('')+'<h4>Ways to prepare</h4>'+list(c.preparation));
+      let html=section(report.title,'<p>'+esc(report.intro)+'</p>');
+      html+=section('The chapter you are in now',(report.current_chapters||[]).map(chapter).join(''));
+      if(report.next_transition){const n=report.next_transition;html+=section('Your next transition','<p>On approximately '+esc(readableDate(n.start))+', '+esc(n.planet)+' changes into house '+esc(n.house)+', bringing '+esc(n.title.toLowerCase())+' into the next review chapter.</p>'+chapter(n));}
+      const years=(report.yearly||[]).map(y=>'<details class="report-section"><summary>'+esc(y.year)+' · '+esc(y.topics.join(' / '))+'</summary><p>Areas to review during this year: '+esc(y.topics.join('; '))+'.</p><h4>Preparation priorities</h4>'+list(y.preparation)+y.transitions.map(chapter).join('')+'</details>').join('');
+      html+=section('Your year-by-year outlook',years);
+      const vedic=report.vedic||{};
+      html+='<details class="report-section"><summary>Lahiri · lifetime period calendar</summary><p>'+esc(vedic.note||'')+'</p><p>Current major period: '+esc(vedic.major_lord||'unavailable')+(vedic.major_end?' · ends '+esc(readableDate(vedic.major_end)):'')+'. Current subperiod: '+esc(vedic.sub_lord||'unavailable')+(vedic.sub_end?' · ends '+esc(readableDate(vedic.sub_end)):'')+'.</p>'+list((vedic.lifetime||[]).map(p=>p.lord+' · '+readableDate(p.start)+' – '+readableDate(p.end)+' · approximate ages '+p.age_start+'–'+p.age_end+(p.current?' · current':'')+(p.end_is_horizon?' · age-100 display limit':'')))+'<h4>Subperiod changes within this outlook</h4>'+list((vedic.subperiods||[]).map(p=>p.major_lord+' / '+p.lord+' · '+readableDate(p.start)+' – '+readableDate(p.end)+(p.current?' · current':'')))+'</details>';
+      html+='<details class="report-section"><summary>Timing method and coverage</summary><p>'+esc(report.method)+'</p><p>'+esc(report.limitations)+'</p></details>';
+      if(includeReferences)html+=section('Timing bibliography','<ol>'+(report.references||[]).map(c=>'<li>'+esc(c.author)+' · <em>'+esc(c.title)+'</em> · '+esc(c.chapter)+' · printed p. '+esc(c.printed_page)+' / PDF p. '+esc(c.pdf_page)+'</li>').join('')+'</ol>');
+      return compact?'<details class="report-section"><summary>Your life chapters · dates and preparation</summary>'+html+'</details>':html;
+    }
     function renderBookReport(report, specialist='') {
       if(!report)return '';
       if(!report.reading)return section('Reading unavailable','<p>The narrative could not be prepared. Please try again.</p>');
@@ -283,7 +301,7 @@
       const planetary=(report.reading.planet_sections||[]).map(item=>section(item.title,item.paragraphs.map(p=>'<p>'+esc(p)+'</p>').join(''))).join('');
       const houses=(report.reading.house_sections||[]).map(item=>'<details class="report-section"><summary>'+esc(item.title)+'</summary>'+item.paragraphs.map(p=>'<p>'+esc(p)+'</p>').join('')+'</details>').join('');
       const references=report.reading.references.map(c=>'<li>'+esc(c.author)+' · <em>'+esc(c.title)+'</em> · '+esc(c.chapter)+' · printed p. '+esc(c.printed_page)+' / PDF p. '+esc(c.pdf_page)+'</li>').join('');
-      return section('Your natal reading','<p class="report-note">Western tropical astrology · A reading of your underlying life themes</p>')+narrative+
+      return section('Your natal reading','<p class="report-note">Western tropical astrology · A reading of your underlying life themes</p>')+narrative+renderLifeReport(report.life_report,true,false)+
         (planetary?section('Your planets: character and expression',planetary):'')+
         (houses?section('Your twelve houses','<p>Each house describes an area of life. Open a house to see its planets and ruling connections.</p>'+houses):section('Houses require a birth location','<p>Planetary sign readings are available, but houses and their rulers need a birth location and a reliable birth time.</p>'))+
         '<details class="report-section"><summary>View your chart and calculation details</summary>'+(report.chart?renderNatal(report.chart):'')+'<p>'+esc(report.basis_note)+'</p></details>'+
@@ -331,6 +349,7 @@
       return section(title,list(rows)+note);
     }
     function renderReading(body) {
+      if(body.life_report)return renderLifeReport(body.life_report);
       if(body.historical_specialists)return renderHistorical(body.historical_specialists)+renderHistoricalBibliography(body.historical_specialists);
       if(body.planets && body.ascendant)return body.book_report?renderBookReport(body.book_report,renderLahiri(body)):renderNatal(body);
       if(body.agents){

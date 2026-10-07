@@ -4,6 +4,8 @@ No raw book text or model-generated citations are stored. PDF page numbers are
 one-based scan pages, which can differ from the printed pagination.
 """
 import swisseph as swe
+from datetime import datetime, timedelta
+from .life_periods import build_life_period_report
 from .ephemeris import PLANET_IDS, sign_of, whole_sign_house_of
 from .historical_specialists import run_historical_specialists
 from .western_delineation import build_western_delineation
@@ -107,10 +109,17 @@ def build_book_natal_report(chart, latitude=None, longitude=None):
                          'interpretation': meaning + ' This is the author’s historical classification, not a forecast of an event.',
                          'reflection': 'This report does not yet apply the author’s detailed planet-pair delineation.',
                          'citations': [citation('raphael_guide', 10, 6, 'Of the Nature of the Aspects')]})
-    return {'version': 3, 'basis': 'Western tropical, geocentric planetary positions',
+    reading = synthesize_natal_reading(planets, aspects, index, tropical_chart)
+    birth_dt = datetime(2000,1,1,12)+timedelta(days=jd-2451545.0)
+    life_report = build_life_period_report(chart,tropical_chart,birth_dt,datetime.utcnow(),citation) if tropical_chart else None
+    if life_report:
+        for ref in life_report['references']:
+            if ref not in reading['references']:
+                reading['references'].append(ref)
+    return {'version': 4, 'basis': 'Western tropical, geocentric planetary positions',
             'basis_note': 'The main wheel uses the tropical zodiac with whole-sign houses as a platform display choice. Lahiri is available as a separate specialist view. House topics, selected planet-in-house passages and rulership are now interpreted. Whole-sign cusps and editorial ruler links are platform choices, not a reproduction of either book’s complete historical cusp method. The astronomical Midheaven is recorded separately from the whole-sign tenth house. Aspect selection uses a platform limit of 5°, not Raphael’s complete orb tables.',
             'planets': planets, 'chart': tropical_chart, 'sections': sections,
-            'reading': synthesize_natal_reading(planets, aspects, index, tropical_chart),
+            'reading': reading, 'life_report':life_report,
             'specialists': run_historical_specialists(chart),
             'coverage': 'This reading currently uses checked passages from White, Raphael and, when applicable, Karma. It covers the Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn, Uranus and Neptune, selected planetary combinations, all twelve house topics and their rulers when a birth location is available. Selected planet-in-house passages have been verified; an exhaustive delineation of every combination is not claimed. Pluto is not covered by these books.',
             'other_books': 'Merton, Daath and Raleigh now have separate specialist sections below the main reading. Each explains its method, calculated evidence or reflection exercise, and current coverage. Further passages from all six books are still being checked.'}
