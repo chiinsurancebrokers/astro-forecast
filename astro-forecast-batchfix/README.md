@@ -172,9 +172,12 @@ python -m astro.book_ingest \
 ```
 
 The output contains extracted source text and is private working data. It is
-excluded from Git and is not loaded by the public knowledge-search API. Review
-the page-level candidates and create a separate JSONL file of short paraphrased
-rules with an exact page or chapter locator. Validate that curated file with:
+excluded from Git and is not loaded by the public knowledge-search API. The
+extractor attempts OCR on sparse pages when Poppler and Tesseract are available;
+use `--no-ocr` to skip that fallback. Pages still reported as sparse need OCR or
+manual review. Review the page-level candidates and create a separate JSONL file
+of short paraphrased rules with a PDF page or chapter locator. Validate that
+curated file with:
 
 ```bash
 python -m astro.book_ingest --validate-rules /path/to/curated_rules.jsonl
