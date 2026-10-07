@@ -13,13 +13,14 @@ def chart(asc="Aries", offset=0):
     planets = {}
     names = ("Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn",
              "Rahu", "Ketu")
+    signs = ("Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra",
+             "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces")
     for i, name in enumerate(names):
         longitude = (i * 37 + offset) % 360
         sign_index = int(longitude // 30)
-        from astro.ephemeris import SIGNS
         planets[name] = {
             "longitude": longitude,
-            "sign": SIGNS[sign_index],
+            "sign": signs[sign_index],
             "house": (i % 12) + 1,
             "retrograde": False,
         }
