@@ -71,18 +71,29 @@ class BookKnowledgeLibrary:
                     raise ValueError(f"{path}:{line_number}: missing fields: {', '.join(missing)}")
                 if "text" in rule or "excerpt" in rule:
                     raise ValueError(f"{path}:{line_number}: raw source text cannot be loaded as a rule")
-                source = sources.get(rule["source"])
-                if source is None or source.get("system") != rule["system"]:
+                rule_id = rule["id"]
+                source_id = rule["source"]
+                system = rule["system"]
+                if not isinstance(rule_id, str) or not rule_id.strip():
+                    raise ValueError(f"{path}:{line_number}: id must be a non-empty string")
+                if not isinstance(source_id, str) or not isinstance(system, str):
+                    raise ValueError(f"{path}:{line_number}: source and system must be strings")
+                source = sources.get(source_id)
+                if source is None or source.get("system") != system:
                     raise ValueError(f"{path}:{line_number}: source/system provenance mismatch")
-                if rule["id"] in seen_ids:
-                    raise ValueError(f"{path}:{line_number}: duplicate rule id {rule['id']}")
-                if not isinstance(rule["topics"], list) or not rule["topics"]:
-                    raise ValueError(f"{path}:{line_number}: topics must be a non-empty list")
+                if rule_id in seen_ids:
+                    raise ValueError(f"{path}:{line_number}: duplicate rule id {rule_id}")
+                if (not isinstance(rule["topics"], list) or not rule["topics"]
+                        or not all(isinstance(topic, str) and topic.strip() for topic in rule["topics"])):
+                    raise ValueError(f"{path}:{line_number}: topics must be a non-empty list of strings")
+                if not isinstance(rule["locator"], str) or not rule["locator"].strip():
+                    raise ValueError(f"{path}:{line_number}: locator must be a non-empty string")
                 if not isinstance(rule["summary"], str) or not 20 <= len(rule["summary"]) <= 600:
                     raise ValueError(f"{path}:{line_number}: summary must be a 20-600 character paraphrase")
-                if not isinstance(rule["keywords"], list):
-                    raise ValueError(f"{path}:{line_number}: keywords must be a list")
-                seen_ids.add(rule["id"])
+                if (not isinstance(rule["keywords"], list)
+                        or not all(isinstance(keyword, str) for keyword in rule["keywords"])):
+                    raise ValueError(f"{path}:{line_number}: keywords must be a list of strings")
+                seen_ids.add(rule_id)
                 loaded.append(rule)
         return loaded
 
