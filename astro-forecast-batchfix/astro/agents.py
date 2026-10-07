@@ -12,6 +12,7 @@ from typing import Any
 from .dasha import build_mahadashas, current_period
 from .forecast import monthly_forecast, house_change_calendar
 from .knowledge_rules import rules_for
+from .book_agent import BookKnowledgeAgent
 
 SIGN_RULERS = {
     "Aries": "Mars", "Taurus": "Venus", "Gemini": "Mercury", "Cancer": "Moon",
@@ -263,6 +264,7 @@ class AstrologyOrchestrator:
         self.timing = TimingAgent()
         self.transit = TransitAgent()
         self.knowledge = TraditionalKnowledgeAgent()
+        self.book_knowledge = BookKnowledgeAgent()
         self.medical = MedicalAstrologyAgent()
         self.calibration = CalibrationAgent()
         self.synthesis = SynthesisAgent()
@@ -278,11 +280,20 @@ class AstrologyOrchestrator:
             self.medical.run(chart),
             self.calibration.run(outcomes),
         ]
+        book_library = self.book_knowledge.run(
+            question=question,
+            chart=chart,
+            life_areas=["career", "money", "marriage", "travel"],
+            timing=True,
+            include_medical=True,
+            limit=16,
+        )
         specialists.append(self.synthesis.run(specialists, question))
         return {
             "architecture": "Astrology Intelligence Engine v2",
             "agent_count": len(specialists),
             "agents": [r.to_dict() for r in specialists],
+            "book_knowledge": book_library,
             "guardrails": {
                 "medical_astrology": "historical/symbolic only; not diagnosis or medical advice",
                 "forecasting": "heuristic evidence is not validated prediction",
