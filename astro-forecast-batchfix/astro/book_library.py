@@ -104,8 +104,12 @@ class BookKnowledgeLibrary:
 
     def retrieve_for_analysis(self, life_areas=None, chart_topics=None, timing_topics=None, include_medical=False, limit=12):
         topics = set()
+        # Each input is a list of topics. Flatten these lists before normalizing;
+        # passing the list itself to _normalize_topic caused the agent endpoint
+        # to fail with AttributeError as soon as it requested chart context.
         for group in (life_areas or [], chart_topics or [], timing_topics or []):
-            topics.add(_normalize_topic(group))
+            terms = group if isinstance(group, (list, tuple, set)) else [group]
+            topics.update(_normalize_topic(term) for term in terms if term)
         if include_medical:
             topics.add("medical_astrology")
         return self.search(topics=sorted(topics), limit=limit)
