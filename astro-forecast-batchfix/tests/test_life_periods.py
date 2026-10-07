@@ -35,6 +35,7 @@ class LifePeriodTests(unittest.TestCase):
         self.assertEqual(len(report['current_chapters']),2)
         self.assertTrue(all(c['start'] >= report['start'] and c['end'] <= report['end'] for c in report['chapters']))
         self.assertTrue(all(c['start'] < c['end'] for c in report['chapters']))
+        self.assertTrue(all(c['from_house'] is not None for c in report['chapters'] if c['start']>report['start']))
         self.assertTrue(all(c['preparation'] for c in report['chapters']))
         self.assertTrue(report['vedic']['lifetime'])
         self.assertTrue(any(r['source_id']=='raphael_guide' and r['pdf_page']==126 for r in report['references']))

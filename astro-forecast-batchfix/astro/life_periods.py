@@ -89,6 +89,14 @@ def build_life_period_report(lahiri_chart, western_chart, birth_dt, start, cite,
     chapters = transit_chapters(start,end,western_chart['ascendant']['sign'],planets)
     for chapter in chapters:
         chapter['end_is_horizon'] = chapter['end']==_date(end)
+    for name in ['Jupiter','Saturn']:
+        previous = None
+        for chapter in [c for c in chapters if c['planet']==name]:
+            chapter['from_house'] = previous['house'] if previous else None
+            chapter['from_title'] = previous['title'] if previous else None
+            if previous:
+                chapter['paragraphs'].insert(1, f"Compared with the preceding chapter, the focus moves from {HOUSE_TOPICS[previous['house']][1]} toward {HOUSE_TOPICS[chapter['house']][1]}. Carry forward what you have learned or organised in the earlier area, then decide which commitments in the new area deserve attention. A date boundary does not require an abrupt life change.")
+            previous = chapter
     current = [c for c in chapters if c['start']==_date(start)]
     forthcoming = sorted([c for c in chapters if c['start']>_date(start)],key=lambda c:c['start'])
     yearly = []
@@ -133,7 +141,7 @@ def build_life_period_report(lahiri_chart, western_chart, birth_dt, start, cite,
       'vedic':{'major_lord':md['lord'] if md else None,'sub_lord':ad['lord'] if ad else None,
                'major_end':_date(md['end']) if md else None,'sub_end':_date(ad['end']) if ad else None,
                'lifetime':lifetime,'subperiods':subperiods,
-               'note':'Separate Lahiri / Vimshottari calendar, calculated from the sidereal Moon’s nakshatra and the remaining period at birth. Dates and approximate ages are shown; the Western bibliography is not used to invent Vedic period meanings. No dedicated Vimshottari interpretation source has yet been verified in the uploaded books.'},
+               'note':'Separate Lahiri / Vimshottari calendar, calculated from the sidereal Moon’s nakshatra and the remaining period at birth. Dates are shown in UTC, with the birth-time offset applied, and ages are approximate; the Western bibliography is not used to invent Vedic period meanings. No dedicated Vimshottari interpretation source has yet been verified in the uploaded books.'},
       'references':refs,
       'method':'Western tropical Jupiter and Saturn, mapped to the natal whole-sign houses and sampled once per day at noon UTC. Boundaries have day-level resolution, not exact ingress times. Repeated entries caused by retrograde motion are retained. Periods beginning on the report start are clipped current periods; endings at the report horizon are not ingress dates. Preparation prompts are editorial applications of house topics.',
       'limitations':'Raphael asks readers to interpret transits in the context of the nativity and other timing methods. His complete directions, solar returns and declination methods are not implemented here. This timeline cannot establish particular future events, event probabilities or why a past event occurred. Astronomical dates are calculable; the personal interpretations are not scientifically validated predictions.'}

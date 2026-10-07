@@ -285,7 +285,7 @@
       const chapter=c=>section(c.planet+' · '+c.title,'<p class="report-note">'+esc(readableDate(c.start))+' – '+esc(readableDate(c.end))+(c.end_is_horizon?' · report horizon':'')+'</p>'+c.paragraphs.map(p=>'<p>'+esc(p)+'</p>').join('')+'<h4>Ways to prepare</h4>'+list(c.preparation));
       let html=section(report.title,'<p>'+esc(report.intro)+'</p>');
       html+=section('The chapter you are in now',(report.current_chapters||[]).map(chapter).join(''));
-      if(report.next_transition){const n=report.next_transition;html+=section('Your next transition','<p>On approximately '+esc(readableDate(n.start))+', '+esc(n.planet)+' changes into house '+esc(n.house)+', bringing '+esc(n.title.toLowerCase())+' into the next review chapter.</p>'+chapter(n));}
+      if(report.next_transition){const n=report.next_transition;html+=section('Your next transition','<p>On approximately '+esc(readableDate(n.start))+', '+esc(n.planet)+' changes into house '+esc(n.house)+', moving from '+esc((n.from_title||'the current chapter').toLowerCase())+' toward '+esc(n.title.toLowerCase())+' into the next review chapter.</p>'+chapter(n));}
       const years=(report.yearly||[]).map(y=>'<details class="report-section"><summary>'+esc(y.year)+' · '+esc(y.topics.join(' / '))+'</summary><p>Areas to review during this year: '+esc(y.topics.join('; '))+'.</p><h4>Preparation priorities</h4>'+list(y.preparation)+y.transitions.map(chapter).join('')+'</details>').join('');
       html+=section('Your year-by-year outlook',years);
       const vedic=report.vedic||{};
