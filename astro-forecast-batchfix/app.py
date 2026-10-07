@@ -83,6 +83,12 @@ def _compute_all(b, months, start):
     }
 
 
+@app.route("/platform")
+def platform_preview():
+    """Premium platform preview; the existing production homepage is unchanged."""
+    return render_template("platform.html")
+
+
 @app.route("/")
 def index():
     lang = _parse_lang(request.args)
