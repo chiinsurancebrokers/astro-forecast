@@ -159,7 +159,7 @@ def build_chunks(
 
 
 def extract_pdf(path: Path, source: SourceDefinition, max_words: int = 350,
-                overlap_words: int = 40) -> tuple[list[BookChunk], list[int]]:
+                overlap_words: int = 40) -> tuple[list[BookChunk], list[int], int]:
     try:
         from pypdf import PdfReader
     except ImportError as exc:
@@ -180,7 +180,7 @@ def extract_pdf(path: Path, source: SourceDefinition, max_words: int = 350,
         page_texts, source, sha256_file(path), max_words=max_words,
         overlap_words=overlap_words,
     )
-    return chunks, sparse_pages
+    return chunks, sparse_pages, len(reader.pages)
 
 
 def write_jsonl(chunks: Iterable[BookChunk], output: Path) -> int:
@@ -202,12 +202,12 @@ def ingest_directory(input_dir: Path, output: Path) -> dict:
         if not pdf_path.is_file():
             report.append({"source_id": source.source_id, "status": "missing"})
             continue
-        chunks, sparse_pages = extract_pdf(pdf_path, source)
+        chunks, sparse_pages, page_count = extract_pdf(pdf_path, source)
         all_chunks.extend(chunks)
         report.append({
             "source_id": source.source_id,
             "status": "extracted",
-            "pages": len(__import__("pypdf").PdfReader(str(pdf_path), strict=False).pages),
+            "pages": page_count,
             "chunks": len(chunks),
             "sparse_pages": sparse_pages,
             "sha256": sha256_file(pdf_path),
@@ -221,7 +221,6 @@ def validate_curated_rules(path: Path) -> list[str]:
     errors = []
     seen_ids = set()
     required = {"id", "source", "system", "topics", "locator", "summary", "keywords"}
-    known_sources = SOURCES
     with path.open(encoding="utf-8") as stream:
         for line_number, line in enumerate(stream, start=1):
             if not line.strip():
@@ -231,22 +230,31 @@ def validate_curated_rules(path: Path) -> list[str]:
             except json.JSONDecodeError as exc:
                 errors.append(f"line {line_number}: invalid JSON ({exc.msg})")
                 continue
+            if not isinstance(item, dict):
+                errors.append(f"line {line_number}: each rule must be a JSON object")
+                continue
             missing = sorted(required - set(item))
             if missing:
                 errors.append(f"line {line_number}: missing {', '.join(missing)}")
                 continue
             if "text" in item or "excerpt" in item:
                 errors.append(f"line {line_number}: raw source text is not an agent rule")
-            if item["id"] in seen_ids:
-                errors.append(f"line {line_number}: duplicate id {item['id']}")
-            seen_ids.add(item["id"])
-            source = known_sources.get(item["source"])
+            rule_id = item.get("id")
+            if not isinstance(rule_id, str) or not rule_id.strip():
+                errors.append(f"line {line_number}: id must be a non-empty string")
+            elif rule_id in seen_ids:
+                errors.append(f"line {line_number}: duplicate id {rule_id}")
+            else:
+                seen_ids.add(rule_id)
+            source = SOURCES.get(item.get("source"))
             if source is None:
-                errors.append(f"line {line_number}: unknown source {item['source']}")
-            elif item["system"] != source.get("system"):
+                errors.append(f"line {line_number}: unknown source {item.get('source')}")
+            elif item.get("system") != source.get("system"):
                 errors.append(f"line {line_number}: system does not match source {item['source']}")
             if not isinstance(item["topics"], list) or not item["topics"]:
                 errors.append(f"line {line_number}: topics must be a non-empty list")
+            if not isinstance(item["locator"], str) or not item["locator"].strip():
+                errors.append(f"line {line_number}: locator must identify a page or chapter")
             if not isinstance(item["summary"], str) or not 20 <= len(item["summary"]) <= 600:
                 errors.append(f"line {line_number}: summary must be a concise 20-600 character paraphrase")
             if not isinstance(item["keywords"], list):
