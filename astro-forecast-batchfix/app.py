@@ -12,6 +12,10 @@ from astro.synthesis import synthesize
 from astro.narrative import build_narrative_report, SECTION_ORDER
 from astro.agents import AstrologyOrchestrator
 from astro.book_library import BookKnowledgeLibrary
+from astro.specialist_agents import (
+    AskAgent, CareerAgent, CompatibilityAgent, GeoAstrologyAgent,
+    PredictiveTimingEnsemble,
+)
 
 app = Flask(__name__)
 init_ephemeris()
@@ -343,6 +347,103 @@ def api_agents_analyze():
         question=question,
     )
     return jsonify(bundle)
+
+
+
+def _build_prefixed_chart(prefix):
+    values = {}
+    for key in ("year", "month", "day", "hour", "minute"):
+        raw = request.args.get(f"{prefix}_{key}", DEFAULTS[key])
+        values[key] = int(raw)
+    for key in ("utc_offset", "latitude", "longitude"):
+        raw = request.args.get(f"{prefix}_{key}", DEFAULTS[key])
+        values[key] = float(raw)
+    chart = build_natal_chart(
+        values["year"], values["month"], values["day"], values["hour"],
+        values["minute"], values["utc_offset"], values["latitude"], values["longitude"],
+    )
+    return values, chart
+
+
+@app.route("/api/agents/compatibility")
+def api_agent_compatibility():
+    if not all(f"b_{key}" in request.args for key in ("year", "month", "day")):
+        return jsonify({"error": "Provide b_year, b_month, and b_day for the second chart."}), 400
+    _, chart_a = _build_prefixed_chart("")
+    _, chart_b = _build_prefixed_chart("b")
+    return jsonify(CompatibilityAgent().run(chart_a, chart_b).to_dict())
+
+
+@app.route("/api/agents/career")
+def api_agent_career():
+    b = _parse_birth(request.args)
+    chart = build_natal_chart(
+        b["year"], b["month"], b["day"], b["hour"], b["minute"],
+        b["utc_offset"], b["latitude"], b["longitude"],
+    )
+    return jsonify(CareerAgent().run(chart).to_dict())
+
+
+@app.route("/api/agents/geo")
+def api_agent_geo():
+    b = _parse_birth(request.args)
+    try:
+        latitude = float(request.args["target_latitude"])
+        longitude = float(request.args["target_longitude"])
+    except (KeyError, ValueError):
+        return jsonify({"error": "Provide numeric target_latitude and target_longitude."}), 400
+    if not -90 <= latitude <= 90 or not -180 <= longitude <= 180:
+        return jsonify({"error": "Target coordinates are outside valid latitude/longitude ranges."}), 400
+    natal = build_natal_chart(
+        b["year"], b["month"], b["day"], b["hour"], b["minute"],
+        b["utc_offset"], b["latitude"], b["longitude"],
+    )
+    birth = {**b, "chart": natal}
+    report = GeoAstrologyAgent().run(birth, latitude, longitude, build_natal_chart)
+    return jsonify(report.to_dict())
+
+
+@app.route("/api/agents/ask")
+def api_agent_ask():
+    question = request.args.get("question", "").strip()
+    if not question:
+        return jsonify({"error": "A non-empty question is required."}), 400
+    routing = AskAgent().run(
+        question,
+        ["Natal / Genethliacal Agent", "Vimshottari Timing Agent",
+         "Transit Intelligence Agent", "Career Agent", "Compatibility Agent",
+         "GeoAstrology Agent"],
+    ).to_dict()
+    b = _parse_birth(request.args)
+    months = max(1, min(int(request.args.get("months", 24)), 120))
+    start_str = request.args.get("start")
+    start = datetime.strptime(start_str, "%Y-%m-%d") if start_str else datetime.now()
+    data = _compute_all(b, months, start)
+    synthesis = synthesize(
+        question, data["chart"],
+        {"current_mahadasha": data["current_mahadasha"],
+         "current_antardasha": data["current_antardasha"]},
+        data["monthly_scores"], data["house_change_calendar"], _parse_lang(request.args),
+    )
+    return jsonify({"routing": routing, "answer": synthesis})
+
+
+@app.route("/api/agents/timing")
+def api_agent_timing():
+    b = _parse_birth(request.args)
+    months = max(1, min(int(request.args.get("months", 24)), 120))
+    start_str = request.args.get("start")
+    start = datetime.strptime(start_str, "%Y-%m-%d") if start_str else datetime.now()
+    data = _compute_all(b, months, start)
+    dasha = [{
+        "type": "vimshottari_current",
+        "mahadasha": data["current_mahadasha"],
+        "antardasha": data["current_antardasha"],
+    }]
+    report = PredictiveTimingEnsemble().run(
+        data["monthly_scores"], dasha, data["house_change_calendar"],
+    )
+    return jsonify(report.to_dict())
 
 
 if __name__ == "__main__":
