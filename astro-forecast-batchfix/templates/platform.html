@@ -405,6 +405,7 @@
       return '<details class="report-section"><summary>Connect this profile with your own journey</summary><form class="report-form" onsubmit="submitJourney(event)"><p>Enter dates as YYYY, YYYY-MM or YYYY-MM-DD. For a long period, add an end date. Your birth details use the dashboard above.</p><p class="report-note">Submitting sends these notes to this app to calculate your timeline. This preview does not save them to a database; reloading clears the page.</p><div id="journey-events">'+journeyEventRow(0)+'</div><button type="button" onclick="addJourneyEvent()">Add another turning point</button><label>How you responded and what you learned<textarea name="responses" rows="4" maxlength="3000" required></textarea></label><label>What you want to build next<textarea name="goals" rows="4" maxlength="2000" required></textarea></label><button class="primary">Calculate my journey and outlook</button><p id="journey-error" role="alert"></p></form></details>';
     }
     let journeyEventCount=1;
+    let journeyDraft=null;
     function journeyEventRow(i){return '<fieldset class="report-section"><legend>Turning point '+(i+1)+'</legend><label>Date<input name="event_date_'+i+'" placeholder="YYYY, YYYY-MM or YYYY-MM-DD" maxlength="10" pattern="[0-9]{4}(-[0-9]{2}(-[0-9]{2})?)?" required></label><label>End date (optional)<input name="event_end_'+i+'" placeholder="For a period of several years" maxlength="10" pattern="[0-9]{4}(-[0-9]{2}(-[0-9]{2})?)?"></label><label>What happened<textarea name="event_description_'+i+'" rows="3" maxlength="600" required></textarea></label></fieldset>';}
     function addJourneyEvent(){if(journeyEventCount>=12)return;$('#journey-events').insertAdjacentHTML('beforeend',journeyEventRow(journeyEventCount++));}
     function renderCalculatedJourney(report){
@@ -419,18 +420,26 @@
       const form=new FormData(event.target),events=[];
       for(let i=0;i<journeyEventCount;i++)events.push({date:String(form.get('event_date_'+i)||'').trim(),end_date:String(form.get('event_end_'+i)||'').trim(),description:String(form.get('event_description_'+i)||'').trim()});
       let birth;try{birth=birthValues();}catch(error){$('#journey-error').textContent=error.message;return;}
+      journeyDraft={birth,events,responses:String(form.get('responses')||'').trim(),goals:String(form.get('goals')||'').trim()};
       const sequence=++requestSequence;
       openReading('Your journey and the years ahead','<p role="status">Calculating your historical intervals and five-year outlook…</p>');
       try{
-        const response=await fetch('/api/agents/personal-journey',{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({birth,events,responses:String(form.get('responses')||'').trim(),goals:String(form.get('goals')||'').trim()})});
+        const response=await fetch('/api/agents/personal-journey',{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify(journeyDraft)});
         const body=await response.json();if(sequence!==requestSequence)return;
         if(!response.ok)throw new Error(body.error||'The journey could not be calculated.');
         $('#report-content').innerHTML=renderCalculatedJourney(body.personal_journey);
-      }catch(error){if(sequence===requestSequence)$('#report-content').innerHTML=section('Please check your journey','<p>'+esc(error.message)+'</p><button class="primary" onclick="openZodiacProfile()">Return to the form</button>');}
+      }catch(error){if(sequence===requestSequence)$('#report-content').innerHTML=section('Please check your journey','<p>'+esc(error.message)+'</p><button class="primary" onclick="editJourneyDraft()">Edit your entries</button>');}
+    }
+    function editJourneyDraft(){
+      ++requestSequence;journeyEventCount=1;openReading('Edit your journey',journeyForm());
+      if(!journeyDraft)return;
+      for(let i=1;i<journeyDraft.events.length;i++)addJourneyEvent();
+      journeyDraft.events.forEach((entry,i)=>{for(const [field,key] of [['date','date'],['end','end_date'],['description','description']])document.querySelector('[name="event_'+field+'_'+i+'"]').value=entry[key]||'';});
+      for(const field of ['responses','goals'])document.querySelector('[name="'+field+'"]').value=journeyDraft[field];
     }
     async function openZodiacProfile(sign='Aquarius') {
       const sequence=++requestSequence;
-      journeyProfile=null;journeyEventCount=1;
+      journeyProfile=null;journeyEventCount=1;journeyDraft=null;
       openReading('Zodiac profiles',zodiacChooser(sign)+'<p role="status">Preparing the profile…</p>');
       try {
         const response=await fetch('/api/zodiac/profiles?'+new URLSearchParams({sign}),{headers:{Accept:'application/json'}});

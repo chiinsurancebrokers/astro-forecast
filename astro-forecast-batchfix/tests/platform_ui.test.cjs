@@ -66,3 +66,11 @@ assert(journeyHtml.indexOf('Review progress.') < journeyHtml.indexOf('Journey bi
 assert(evaluate('journeyForm()').includes('event_end_0'));
 assert(htmlSource.includes("method:'POST'"));
 assert(!htmlSource.includes('localStorage'));
+
+// Invalid server dates can be edited without losing the user's chronology.
+element('#journey-events').insertAdjacentHTML=function(_where,markup){this.innerHTML+=markup;};
+evaluate("journeyDraft={events:[{date:'2005-11',end_date:'',description:'Fictional home change.'},{date:'2009',end_date:'2022',description:'A long period.'}],responses:'Learning.',goals:'A contribution.'};editJourneyDraft()");
+assert.equal(element('[name="event_date_1"]').value,'2009');
+assert.equal(element('[name="event_end_1"]').value,'2022');
+assert.equal(element('[name="responses"]').value,'Learning.');
+assert.equal(element('[name="goals"]').value,'A contribution.');
