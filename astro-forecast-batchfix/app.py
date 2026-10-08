@@ -1,4 +1,5 @@
 import os
+import math
 import tempfile
 from datetime import datetime
 from flask import Flask, render_template, request, jsonify, send_file
@@ -14,6 +15,7 @@ from astro.agents import AstrologyOrchestrator
 from astro.book_library import BookKnowledgeLibrary
 from astro.historical_specialists import run_historical_specialists, plan_catalogue
 from astro.natal_books import build_book_natal_report, SUN_READINGS, citation
+from astro.personal_journey import build_personal_journey
 from astro.zodiac_profiles import build_zodiac_profile
 from astro.specialist_agents import (
     AskAgent, CareerAgent, CompatibilityAgent, GeoAstrologyAgent,
@@ -502,6 +504,30 @@ def api_zodiac_profiles():
             return jsonify({'error':'Choose one of the twelve zodiac signs.'}), 400
         return jsonify({'zodiac_profile':build_zodiac_profile(sign,SUN_READINGS,citation)})
     return jsonify({'profiles':[{'sign':sign,'title':sign+' · understanding yourself'} for sign in SUN_READINGS]})
+
+
+@app.route('/api/agents/personal-journey', methods=['POST'])
+def api_personal_journey():
+    if request.content_length and request.content_length>24000:
+        return jsonify({'error':'The journey is too long.'}),413
+    body=request.get_json(silent=True)
+    if not isinstance(body,dict) or not isinstance(body.get('birth'),dict):
+        return jsonify({'error':'Provide birth details and dated turning points.'}),400
+    try:
+        if not all(k in body['birth'] for k in ['year','month','day','hour','minute','utc_offset','latitude','longitude']):
+            raise ValueError('Birth details required.')
+        b=_parse_birth(body['birth'])
+        birth_date=datetime(b['year'],b['month'],b['day'],b['hour'],b['minute'])
+        if b['year']<1800 or birth_date>datetime.utcnow():raise ValueError('Birth date is outside the supported range.')
+        if not (math.isfinite(b['utc_offset']) and -12<=b['utc_offset']<=14 and math.isfinite(b['latitude']) and -89<=b['latitude']<=89 and math.isfinite(b['longitude']) and -180<=b['longitude']<=180):
+            raise ValueError('Birth coordinates invalid.')
+        chart=build_natal_chart(b['year'],b['month'],b['day'],b['hour'],b['minute'],b['utc_offset'],b['latitude'],b['longitude'])
+        result=build_personal_journey(chart,b['latitude'],b['longitude'],body)
+    except (ValueError,TypeError,OverflowError):
+        return jsonify({'error':'Check your birth details, dates and text limits. Dates may be YYYY, YYYY-MM or YYYY-MM-DD.'}),400
+    response=jsonify({'personal_journey':result})
+    response.headers['Cache-Control']='no-store'
+    return response
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))

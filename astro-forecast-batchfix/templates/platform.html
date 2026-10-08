@@ -351,6 +351,7 @@
       return section(title,list(rows)+note);
     }
     function renderReading(body) {
+      if(body.personal_journey)return renderCalculatedJourney(body.personal_journey);
       if(body.zodiac_profile && !body.reading && !body.natal_book_report)return renderZodiacProfile(body.zodiac_profile);
       if(body.life_report)return renderLifeReport(body.life_report);
       if(body.historical_specialists)return renderHistorical(body.historical_specialists)+renderHistoricalBibliography(body.historical_specialists);
@@ -401,11 +402,35 @@
       return '<form class="report-form" onsubmit="event.preventDefault();openZodiacProfile(document.querySelector(&quot;#profile-sign&quot;).value)"><label>Zodiac sign<select id="profile-sign">'+Object.keys(SIGN_THEMES).map(sign=>'<option'+(sign===selected?' selected':'')+'>'+esc(sign)+'</option>').join('')+'</select></label><button class="primary">Explore this sign</button></form>';
     }
     function journeyForm(sign) {
-      return '<details class="report-section"><summary>Connect this profile with your own journey</summary><form class="report-form" onsubmit="submitJourney(event)"><p>Your notes stay in this page. They are not sent to the server or saved; reloading clears them.</p><label>Turning points and years<textarea name="turning_points" rows="5" maxlength="4000" required placeholder="Year or age · what changed in your life"></textarea></label><label>How you responded and what you learned<textarea name="responses" rows="4" maxlength="3000" required placeholder="Choices, support, skills and the things you rebuilt"></textarea></label><label>What you want to build next<textarea name="goals" rows="4" maxlength="2000" required placeholder="A relationship, home, contribution or professional goal"></textarea></label><button class="primary">Create my reflection</button></form></details>';
+      return '<details class="report-section"><summary>Connect this profile with your own journey</summary><form class="report-form" onsubmit="submitJourney(event)"><p>Enter dates as YYYY, YYYY-MM or YYYY-MM-DD. For a long period, add an end date. Your birth details use the dashboard above.</p><p class="report-note">Submitting sends these notes to this app to calculate your timeline. This preview does not save them to a database; reloading clears the page.</p><div id="journey-events">'+journeyEventRow(0)+'</div><button type="button" onclick="addJourneyEvent()">Add another turning point</button><label>How you responded and what you learned<textarea name="responses" rows="4" maxlength="3000" required></textarea></label><label>What you want to build next<textarea name="goals" rows="4" maxlength="2000" required></textarea></label><button class="primary">Calculate my journey and outlook</button><p id="journey-error" role="alert"></p></form></details>';
+    }
+    let journeyEventCount=1;
+    function journeyEventRow(i){return '<fieldset class="report-section"><legend>Turning point '+(i+1)+'</legend><label>Date<input name="event_date_'+i+'" placeholder="YYYY, YYYY-MM or YYYY-MM-DD" maxlength="10" pattern="[0-9]{4}(-[0-9]{2}(-[0-9]{2})?)?" required></label><label>End date (optional)<input name="event_end_'+i+'" placeholder="For a period of several years" maxlength="10" pattern="[0-9]{4}(-[0-9]{2}(-[0-9]{2})?)?"></label><label>What happened<textarea name="event_description_'+i+'" rows="3" maxlength="600" required></textarea></label></fieldset>';}
+    function addJourneyEvent(){if(journeyEventCount>=12)return;$('#journey-events').insertAdjacentHTML('beforeend',journeyEventRow(journeyEventCount++));}
+    function renderCalculatedJourney(report){
+      const text=v=>'<p style="white-space:pre-wrap">'+esc(v)+'</p>';
+      const intervals=chapters=>'<details class="report-section"><summary>View every calculated Jupiter and Saturn interval</summary>'+chapters.map(c=>section(c.planet+' · '+c.title,'<p>'+esc(readableDate(c.start))+' – '+esc(readableDate(c.end))+'</p>'+c.paragraphs.map(p=>'<p>'+esc(p)+'</p>').join(''))).join('')+'</details>';
+      const contacts=rows=>'<details class="report-section"><summary>Calculated major contacts · approximate dates</summary>'+list((rows||[]).map(c=>readableDate(c.date)+': '+c.planet+' '+c.aspect+' natal '+c.target+'.'))+'<p class="report-note">These are daily-bracketed contacts, not event dates. Repeated contacts are retained; no fit score is assigned.</p></details>';
+      const events=report.events.map(e=>section(e.date+(e.end_date?' – '+e.end_date:''),text(e.description)+'<p>'+esc(e.context_summary)+'</p><p>'+esc(e.interpretation)+'</p><p class="report-note">'+esc(e.precision_note)+'</p>'+intervals(e.chapters)+contacts(e.contacts))).join('');
+      return section(report.title,'<p>Your own chronology, the calculated planetary context and your future goals are shown separately.</p>')+(report.natal_context||[]).map(s=>section(s.title,s.paragraphs.map(p=>'<p>'+esc(p)+'</p>').join(''))).join('')+section('Your turning points',events)+section('Your responses and learning',text(report.notes.responses))+section('Your goals for the next chapter',text(report.notes.goals)+'<p>These are aspirations, not promised outcomes. Choose the parts you can influence and review them alongside your actual circumstances.</p>')+section('Preparation from your own experience',list(report.preparation))+renderLifeReport(report.life_report,false,false)+section('Your upcoming planetary contacts',contacts(report.future_contacts))+section('Journey bibliography','<ol>'+report.references.map(c=>'<li>'+esc(c.author)+' · <em>'+esc(c.title)+'</em> · '+esc(c.chapter)+' · printed p. '+esc(c.printed_page)+' / PDF p. '+esc(c.pdf_page)+'</li>').join('')+'</ol><p class="report-note">'+esc(report.method)+'</p><p class="report-note">'+esc(report.privacy)+'</p>')+'<button class="primary" onclick="openZodiacProfile('+esc(JSON.stringify(report.zodiac_profile.sign))+')">Clear notes and return to profile</button>';
+    }
+    async function submitJourney(event){
+      event.preventDefault();
+      const form=new FormData(event.target),events=[];
+      for(let i=0;i<journeyEventCount;i++)events.push({date:String(form.get('event_date_'+i)||'').trim(),end_date:String(form.get('event_end_'+i)||'').trim(),description:String(form.get('event_description_'+i)||'').trim()});
+      let birth;try{birth=birthValues();}catch(error){$('#journey-error').textContent=error.message;return;}
+      const sequence=++requestSequence;
+      openReading('Your journey and the years ahead','<p role="status">Calculating your historical intervals and five-year outlook…</p>');
+      try{
+        const response=await fetch('/api/agents/personal-journey',{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({birth,events,responses:String(form.get('responses')||'').trim(),goals:String(form.get('goals')||'').trim()})});
+        const body=await response.json();if(sequence!==requestSequence)return;
+        if(!response.ok)throw new Error(body.error||'The journey could not be calculated.');
+        $('#report-content').innerHTML=renderCalculatedJourney(body.personal_journey);
+      }catch(error){if(sequence===requestSequence)$('#report-content').innerHTML=section('Please check your journey','<p>'+esc(error.message)+'</p><button class="primary" onclick="openZodiacProfile()">Return to the form</button>');}
     }
     async function openZodiacProfile(sign='Aquarius') {
       const sequence=++requestSequence;
-      journeyProfile=null;
+      journeyProfile=null;journeyEventCount=1;
       openReading('Zodiac profiles',zodiacChooser(sign)+'<p role="status">Preparing the profile…</p>');
       try {
         const response=await fetch('/api/zodiac/profiles?'+new URLSearchParams({sign}),{headers:{Accept:'application/json'}});
@@ -416,27 +441,6 @@
         $('#report-content').innerHTML=zodiacChooser(sign)+renderZodiacProfile(journeyProfile)+journeyForm(sign);
       } catch(error) {if(sequence===requestSequence)$('#report-content').innerHTML=zodiacChooser(sign)+section('Profile unavailable','<p>'+esc(error.message)+'</p>');}
     }
-    function renderJourney(profile,notes) {
-      const text=value=>'<p style="white-space:pre-wrap">'+esc(value)+'</p>';
-      return section('Your journey · experience, response and direction','<p>This reflection brings together your own account and a source-based zodiac perspective. Your account supplies the history; the sign does not explain why an event happened.</p>')+
-        section('What changed · in your own words',text(notes.turning_points))+
-        section('How you responded · in your own words',text(notes.responses)+'<p>These are the choices and lessons you have recorded. Look for a concrete example of something you can now handle, understand or ask for more clearly than before.</p>')+
-        section('What you want to build · your aspirations',text(notes.goals)+'<p>Keep the aspiration, then define the parts you can act on. A predicted partner, address, property, income or possession is not a guaranteed outcome.</p>')+
-        section('Read the zodiac theme alongside your experience','<p>'+esc(profile.sections[0].paragraphs[0])+'</p><p>'+esc(profile.sections[2].paragraphs[1])+'</p><p>Keep the themes that help you understand a real pattern. Record examples that do not fit too; you do not need to reshape your history to match a sign.</p>')+
-        section('Prepare your next chapter',list(['Choose one goal from your aspirations and describe what progress would look like.','Identify the skill, conversation, resource or support that would help.','Select one manageable action and a review date.','Separate what you can influence from what depends on another person or external circumstances.','Review the outcome alongside your actual experience, then adjust the plan.']))+
-        renderZodiacProfile(profile)+'<p class="report-note">Your notes remain in this page only. This reflection does not correlate your history with transit dates or claim that hardship was necessary for your growth.</p><button class="primary" onclick="openZodiacProfile('+esc(JSON.stringify(profile.sign))+')">Clear notes and return to profile</button>';
-    }
-    function submitJourney(event) {
-      event.preventDefault();if(!journeyProfile)return;
-      const form=new FormData(event.target),notes={};
-      for(const [key,max] of [['turning_points',4000],['responses',3000],['goals',2000]]) {
-        notes[key]=String(form.get(key)||'').trim();
-        if(!notes[key]||notes[key].length>max)return;
-      }
-      ++requestSequence;
-      openReading(journeyProfile.sign+' · your personal journey',renderJourney(journeyProfile,notes));
-    }
-
     function compareCharts() {
       ++requestSequence;
       openReading('Compare two charts', '<form class="report-form" onsubmit="submitCompatibility(event)"><p>Enter the second person’s birth details. The first chart uses the details on your dashboard.</p><div class="form-grid"><label>Birth date<input name="date" type="date" required></label><label>Birth time (optional)<input name="time" type="time"></label><label>UTC offset at birth<input name="offset" type="number" value="2" min="-12" max="14" step="0.25" required></label><label>Birth latitude<input name="latitude" type="number" value="37.9838" min="-89" max="89" step="any" required></label><label>Birth longitude<input name="longitude" type="number" value="23.7275" min="-180" max="180" step="any" required></label></div><p class="report-note">If the time is unknown, noon is used. Moon placement and aspects may be uncertain.</p><button class="primary" type="submit">Generate compatibility reading</button></form>');
