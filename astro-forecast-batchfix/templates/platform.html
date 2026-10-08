@@ -160,7 +160,7 @@
         </div>
         <div class="today" id="today">Today · your celestial brief</div>
       </section>
-      <section class="section" id="zodiac-profiles"><h2>Understand yourself through the zodiac</h2><article class="card"><h3>Your sign, your experience, your next chapter</h3><p>Explore all twelve source-based profiles, then connect the themes with your own turning points, recovery and aspirations.</p><button class="primary" onclick="openZodiacProfile()">Explore zodiac profiles ↗</button></article></section>
+      <section class="section" id="zodiac-profiles"><h2>Understand yourself through the zodiac</h2><article class="card"><h3>Character, relationships and vocation</h3><p>Read a substantial portrait of your sign: its strengths, inner tensions, relationships, ambitions and capacity for change.</p><button class="primary" onclick="openZodiacProfile()">Explore zodiac profiles ↗</button></article></section>
     <section class="grid">
         <article class="card hero">
           <div class="hero-copy">
@@ -394,7 +394,7 @@
       }
     }
     function renderZodiacProfile(profile, includeReferences=true) {
-      const body=section(profile.title,'<p>'+esc(profile.intro)+'</p>')+profile.sections.map(s=>section(s.title,s.paragraphs.map(p=>'<p>'+esc(p)+'</p>').join(''))).join('');
+      const body=section(profile.title,'<p>'+esc(profile.intro)+'</p>'+(profile.ruler?'<p class="report-note">Ruling planet in Belle Bart’s interpretation: '+esc(profile.ruler)+'</p>':''))+profile.sections.map(s=>section(s.title,s.paragraphs.map(p=>'<p>'+esc(p)+'</p>').join(''))).join('');
       return body+(includeReferences?section('Profile bibliography','<ol>'+profile.references.map(c=>'<li>'+esc(c.author)+' · <em>'+esc(c.title)+'</em> · '+esc(c.chapter)+' · printed p. '+esc(c.printed_page)+' / PDF p. '+esc(c.pdf_page)+'</li>').join('')+'</ol><p class="report-note">'+esc(profile.method)+'</p>'):'');
     }
     let journeyProfile = null;

@@ -122,6 +122,9 @@ def build_book_natal_report(chart, latitude=None, longitude=None):
                 reading['references'].append(ref)
     from .zodiac_profiles import build_zodiac_profile
     zodiac_profile=build_zodiac_profile(planets['Sun']['sign'],SUN_READINGS,citation)
+    for ref in zodiac_profile['references']:
+        if ref not in reading['references']:
+            reading['references'].append(ref)
     return {'version': 6, 'basis': 'Western tropical, geocentric planetary positions',
             'basis_note': 'The main wheel uses the tropical zodiac with whole-sign houses as a platform display choice. Lahiri is available as a separate specialist view. House topics, selected planet-in-house passages and rulership are now interpreted. Whole-sign cusps and editorial ruler links are platform choices, not a reproduction of either book’s complete historical cusp method. The astronomical Midheaven is recorded separately from the whole-sign tenth house. Aspect selection uses a platform limit of 5°, not Raphael’s complete orb tables.',
             'planets': planets, 'chart': tropical_chart, 'sections': sections,
