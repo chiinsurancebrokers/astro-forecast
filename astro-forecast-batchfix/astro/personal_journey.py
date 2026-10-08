@@ -29,7 +29,7 @@ def aspect_crossings(start,end,targets):
                     key=(planet,target,angle)
                     difference=(values[0]-longitude-angle+180)%360-180
                     last=previous.get(key)
-                    if day>=start and last is not None and last*difference<0 and abs(difference-last)<2:
+                    if day>=start and last is not None and last*difference<0 and abs(difference-last)<180:
                         out.append({'date':day.strftime('%Y-%m-%d'),'planet':planet,'target':target,'aspect':label,'bracket_start':(day-timedelta(days=1)).strftime('%Y-%m-%d')})
                     previous[key]=difference
         day+=timedelta(days=1)
