@@ -156,6 +156,68 @@ git remote add origin https://github.com/<your-username>/<repo-name>.git
 git push -u origin main
 ```
 
+## Premium platform preview
+
+The new, isolated dashboard is available at `/platform`. The existing home page
+at `/` remains unchanged. The preview connects to natal and career evidence APIs;
+account persistence, Supabase Auth/RLS wiring, and Stripe checkout remain follow-on
+integration work.
+
+## Specialist agent APIs
+
+- `GET /api/agents/analyze`: orchestrated natal, timing, transit, knowledge,
+  career and evidence-routing output.
+- `GET /api/agents/compatibility`: compares the primary chart with the second
+  chart supplied through `b_year`, `b_month`, `b_day` and optional `b_*`
+  birth parameters.
+- `GET /api/agents/career`: summarizes selected career-house and Ascendant-ruler
+  evidence.
+- `GET /api/agents/geo`: compares natal and relocated whole-sign houses using
+  `target_latitude` and `target_longitude`.
+- `GET /api/agents/ask`: routes a question to evidence domains and uses the
+  existing model-grounded synthesis.
+- `GET /api/agents/timing`: returns monthly transit, ingress and Vimshottari
+  evidence with validation disclosures.
+
+The timing ensemble does not produce probabilities or validated predictions.
+GeoAstrology compares chart placements at a supplied location; it does not yet
+compute astrocartography line paths.
+
+## Book Knowledge ingestion
+
+The source catalog distinguishes Western traditional astrology, heliocentric
+historical material, historical medical astrology, and Hermetic historical
+material. The extractor preserves source IDs, system tags, page spans, file
+hashes, and deterministic chunk IDs.
+
+Run extraction locally from the application directory:
+
+```bash
+python -m astro.book_ingest \
+  --input-dir /path/to/source-pdfs \
+  --output book_ingestion/private/source_chunks.jsonl
+```
+
+The output contains extracted source text and is private working data. It is
+excluded from Git and is not loaded by the public knowledge-search API. The
+extractor attempts OCR on sparse pages when Poppler and Tesseract are available;
+use `--no-ocr` to skip that fallback. Pages still reported as sparse need OCR or
+manual review. Review the page-level candidates and create a separate JSONL file
+of short paraphrased rules with a PDF page or chapter locator. Validate that
+curated file with:
+
+```bash
+python -m astro.book_ingest --validate-rules /path/to/curated_rules.jsonl
+```
+
+Only validated paraphrased rules can be made available to the Book Knowledge
+Agent by setting `ASTRO_KNOWLEDGE_RULES_PATH` to a private, mounted JSONL file.
+The loader rejects raw `text`/`excerpt` fields, unknown sources, duplicate
+rule IDs, and system/provenance mismatches. Vedic, Western, heliocentric,
+medical, and Hermetic material remain separately tagged; medical material is
+included only when a request explicitly selects it. Pages with sparse extracted
+text are reported for OCR review rather than treated as successfully ingested.
+
 ## Project layout
 
 ```

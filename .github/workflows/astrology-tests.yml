@@ -1,0 +1,39 @@
+name: Astrology branch tests
+
+on:
+  push:
+    branches:
+      - feature/astrology-agents-v2
+    paths:
+      - "astro-forecast-batchfix/**"
+      - "supabase/**"
+      - ".github/workflows/astrology-tests.yml"
+  pull_request:
+    paths:
+      - "astro-forecast-batchfix/**"
+      - "supabase/**"
+      - ".github/workflows/astrology-tests.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: astro-forecast-batchfix
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install application dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run unit tests
+        run: python -m unittest discover -s tests -v
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Verify platform report rendering and interactions
+        run: node tests/platform_ui.test.cjs

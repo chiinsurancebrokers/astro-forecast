@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Astro Intelligence — Your sky, understood</title>
+  <meta name="theme-color" content="#080e23">
+  <style>
+    :root {
+      color-scheme: dark;
+      --navy: #080e23;
+      --navy-2: #101a36;
+      --panel: rgba(20, 31, 59, .78);
+      --line: rgba(183, 198, 239, .12);
+      --muted: #a4b1cd;
+      --ink: #eff3ff;
+      --gold: #e7c68d;
+      --violet: #ac9bff;
+      --mint: #7bd7c5;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(ellipse at 78% 12%, rgba(95, 93, 174, .19), transparent 34rem),
+        radial-gradient(ellipse at 12% 76%, rgba(45, 131, 153, .12), transparent 36rem),
+        var(--navy);
+      font: 15px/1.5 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    .shell { display: grid; grid-template-columns: 238px minmax(0, 1fr); min-height: 100vh; }
+    aside { padding: 27px 18px; border-right: 1px solid var(--line); background: rgba(5, 10, 26, .52); }
+    .brand { display: flex; align-items: center; gap: 11px; padding: 0 9px 34px; font-size: 15px; letter-spacing: .08em; text-transform: uppercase; }
+    .brand-mark { display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid rgba(231,198,141,.6); border-radius: 50%; color: var(--gold); font-size: 17px; }
+    .eyebrow { color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
+    nav { display: grid; gap: 5px; }
+    nav a { display: flex; align-items: center; gap: 12px; padding: 11px 12px; color: #bec9e1; text-decoration: none; border-radius: 11px; }
+    nav a span { width: 17px; text-align: center; color: var(--gold); }
+    nav a.active, nav a:hover { background: rgba(150, 167, 219, .11); color: #fff; }
+    .side-card { margin: 39px 3px 0; padding: 16px; border: 1px solid var(--line); border-radius: 16px; background: linear-gradient(145deg, rgba(40,55,94,.5), rgba(14,22,47,.5)); }
+    .side-card p { margin: 7px 0 14px; color: var(--muted); font-size: 12px; }
+    .side-card button { width: 100%; padding: 9px; color: #15152b; border: 0; border-radius: 9px; background: var(--gold); font-weight: 700; }
+    main { width: min(1440px, 100%); padding: 27px clamp(20px, 4vw, 58px) 64px; margin: 0 auto; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 43px; }
+    .topbar .right { display: flex; align-items: center; gap: 15px; color: var(--muted); font-size: 13px; }
+    .avatar { display: grid; place-items: center; width: 35px; height: 35px; border-radius: 50%; color: #19213e; background: linear-gradient(140deg, #efd5a7, #b49aff); font-weight: 800; }
+    .intro { display: flex; justify-content: space-between; align-items: end; gap: 30px; margin-bottom: 23px; }
+    h1 { max-width: 670px; margin: 9px 0 8px; font-family: Georgia, "Times New Roman", serif; font-size: clamp(34px, 4.4vw, 58px); font-weight: 400; line-height: 1.06; letter-spacing: -.035em; }
+    .intro p { margin: 0; color: var(--muted); font-size: 15px; }
+    .today { padding: 10px 14px; color: var(--muted); white-space: nowrap; border: 1px solid var(--line); border-radius: 12px; }
+    .grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 16px; }
+    .card { position: relative; overflow: hidden; border: 1px solid var(--line); border-radius: 19px; background: var(--panel); box-shadow: 0 14px 55px rgba(1,5,18,.16); }
+    .hero { grid-column: span 7; min-height: 278px; padding: 27px 30px; display: flex; align-items: center; justify-content: space-between; background: linear-gradient(112deg, rgba(27,40,75,.97), rgba(21,29,59,.91) 60%, rgba(45,39,79,.76)); }
+    .hero::after { content: ""; position: absolute; width: 290px; height: 290px; border: 1px solid rgba(210,215,250,.11); border-radius: 50%; right: -20px; top: -10px; box-shadow: 0 0 0 24px rgba(210,215,250,.025), 0 0 0 62px rgba(210,215,250,.025); }
+    .hero-copy { z-index: 1; max-width: 380px; }
+    h2 { margin: 8px 0 10px; font-family: Georgia, "Times New Roman", serif; font-size: 28px; font-weight: 400; line-height: 1.18; }
+    .hero-copy p { max-width: 340px; color: #b9c3db; }
+    .primary { padding: 11px 16px; color: #15152b; border: 0; border-radius: 10px; background: linear-gradient(105deg, #eed5a4, #d1b9f5); font-weight: 750; }
+    .orbit { position: relative; z-index: 1; flex: 0 0 200px; height: 200px; margin-right: 5px; }
+    .orbit .ring { position: absolute; left: 50%; top: 50%; width: 180px; height: 78px; border: 1px solid rgba(217,213,255,.39); border-radius: 50%; transform: translate(-50%,-50%) rotate(-36deg); }
+    .orbit .ring.two { width: 145px; height: 110px; transform: translate(-50%,-50%) rotate(52deg); border-color: rgba(231,198,141,.33); }
+    .planet { position: absolute; left: 50%; top: 50%; width: 76px; height: 76px; border-radius: 50%; transform: translate(-50%,-50%); background: radial-gradient(circle at 30% 25%, #ffe8b6, #bd9bd4 49%, #54558d 79%); box-shadow: 0 0 35px rgba(194,167,246,.28); }
+    .satellite { position: absolute; left: 16px; top: 45px; width: 10px; height: 10px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 13px var(--mint); }
+    .star { position: absolute; color: #f0dba9; opacity: .8; font-size: 10px; }
+    .star.s1 { right: 6px; top: 30px; } .star.s2 { left: 24px; bottom: 28px; }
+    .timing { grid-column: span 5; padding: 24px 25px; min-height: 278px; }
+    .timing-head { display: flex; align-items: start; justify-content: space-between; }
+    .status { padding: 5px 9px; border: 1px solid rgba(123,215,197,.26); border-radius: 99px; color: var(--mint); font-size: 11px; }
+    .timing h2 { margin-top: 20px; }
+    .timing p { max-width: 390px; color: var(--muted); }
+    .timing-foot { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 22px; }
+    .chip { padding: 7px 10px; color: #d9dff0; border: 1px solid var(--line); border-radius: 99px; font-size: 11px; }
+    .section-head { grid-column: span 12; display: flex; align-items: center; justify-content: space-between; margin: 17px 0 0; }
+    .section-head h2 { font-size: 21px; margin: 0; }
+    .section-head a { color: var(--gold); text-decoration: none; font-size: 12px; }
+    .feature { grid-column: span 3; min-height: 179px; padding: 21px; transition: transform .2s, border-color .2s; }
+    .feature:hover { transform: translateY(-3px); border-color: rgba(231,198,141,.33); }
+    .icon { display: grid; place-items: center; width: 37px; height: 37px; border: 1px solid rgba(231,198,141,.25); border-radius: 12px; color: var(--gold); background: rgba(231,198,141,.08); font-size: 16px; }
+    .feature h3 { margin: 15px 0 5px; font-size: 15px; }
+    .feature p { min-height: 36px; margin: 0; color: var(--muted); font-size: 12px; }
+    .feature button { margin-top: 14px; padding: 0; color: var(--gold); border: 0; background: none; font-size: 12px; font-weight: 650; }
+    .bottom { grid-column: span 12; display: grid; grid-template-columns: 1.2fr .8fr; gap: 16px; }
+    .chart-form, .insight { padding: 22px 24px; }
+    .chart-form h2, .insight h2 { font-size: 21px; }
+    .form-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
+    label { display: grid; gap: 5px; color: var(--muted); font-size: 11px; }
+    input { min-width: 0; padding: 9px 10px; color: var(--ink); border: 1px solid var(--line); border-radius: 9px; outline: none; background: rgba(4,9,25,.42); }
+    input:focus { border-color: rgba(231,198,141,.65); }
+    .form-actions { display: flex; align-items: center; gap: 13px; margin-top: 13px; }
+    .form-actions small { color: var(--muted); }
+    .insight { background: linear-gradient(145deg, rgba(42,48,83,.74), rgba(20,31,59,.8)); }
+    .insight p { color: var(--muted); font-size: 13px; }
+    #result { margin-top: 16px; color: #cdd7f1; font-size: 14px; }
+    dialog { width: min(880px, calc(100% - 24px)); max-height: 90dvh; padding: 0; color: var(--ink); background: #101a36; border: 1px solid var(--line); border-radius: 20px; overflow: auto; }
+    dialog::backdrop { background: rgba(2,5,17,.82); backdrop-filter: blur(8px); }
+    .report-header { position: sticky; top: 0; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 24px; background: #101a36; border-bottom: 1px solid var(--line); z-index: 2; }
+    .report-header h2 { margin: 0; font-size: 25px; }
+    .report-header button { border: 1px solid var(--line); border-radius: 9px; background: transparent; color: var(--ink); padding: 8px 12px; }
+    #report-content { padding: 24px; }
+    .report-section { margin: 0 0 24px; }
+    .report-section h3 { font-family: Georgia,serif; font-weight: 400; font-size: 24px; color: var(--gold); margin: 0 0 12px; }
+    .report-section p, .report-section li { color: #cdd7f1; font-size: 15px; line-height: 1.7; }
+    .report-section ul { padding-left: 21px; }
+    .report-section li { margin-bottom: 9px; }
+    .report-note { font-size: 13px; color: var(--muted); }
+    .chart-wheel { display: block; width: min(100%,440px); margin: 0 auto 22px; }
+    .planet-list { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+    .planet-row { padding: 13px; border: 1px solid var(--line); border-radius: 12px; }
+    .planet-row strong { color: var(--gold); }
+    .planet-row p { margin: 5px 0 0; font-size: 13px; }
+    .report-form textarea, .report-form select { width:100%; padding:12px; border:1px solid var(--border); border-radius:12px; background:#10172d; color:#e4e8f6; font:inherit; }
+    .report-form { display: grid; gap: 14px; }
+    .report-form .form-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    .answer-text { white-space: pre-wrap; line-height: 1.8; }
+    @media(max-width: 480px) { #report-content { padding: 18px; } .planet-list { grid-template-columns: 1fr; } .report-header { padding: 14px 18px; } }
+
+    .disclaimer { margin: 22px 2px 0; color: #75819d; font-size: 11px; }
+    @media (max-width: 1050px) { .hero, .timing { grid-column: span 12; } .feature { grid-column: span 6; } }
+    @media (max-width: 700px) {
+      .shell { display: block; } aside { display: none; } main { padding: 20px 16px 40px; }
+      .topbar { margin-bottom: 30px; } .intro { display: block; } .today { display: inline-block; margin-top: 15px; }
+      .hero { padding: 23px; } .orbit { flex-basis: 112px; transform: scale(.67); transform-origin: center right; margin-left: -42px; margin-right: -19px; }
+      .timing { min-height: 240px; } .feature { grid-column: span 12; min-height: auto; }
+      .bottom { grid-template-columns: 1fr; } .form-grid { grid-template-columns: repeat(2,1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside>
+      <div class="brand"><div class="brand-mark">✦</div><span>Astro Intelligence</span></div>
+      <div class="eyebrow" style="padding:0 12px 12px">Workspace</div>
+      <nav aria-label="Main navigation">
+        <a class="active" href="/platform"><span>◉</span>Overview</a>
+        <a href="#natal" onclick="event.preventDefault();runAgent('/api/natal')"><span>☉</span>Natal chart</a>
+        <a href="#timing" onclick="event.preventDefault();runAgent('/api/agents/timing')"><span>◷</span>Timing intelligence</a>
+        <a href="#compatibility" onclick="event.preventDefault();compareCharts()"><span>◎</span>Compatibility</a>
+        <a href="#career" onclick="event.preventDefault();runAgent('/api/agents/career')"><span>✧</span>Career &amp; purpose</a>
+        <a href="#geo" onclick="event.preventDefault();exploreGeo()"><span>⌖</span>GeoAstrology</a>
+      </nav>
+      <div class="side-card">
+        <div class="eyebrow">Your next insight</div>
+        <p>Bring your birth details into the library to unlock a more personal reading.</p>
+        <button onclick="runAgent('/api/natal')">Create a chart</button>
+      </div>
+    </aside>
+    <main>
+      <header class="topbar">
+        <div class="eyebrow">Personal astrology intelligence</div>
+        <div class="right"><span>Private preview</span><div class="avatar" aria-label="Profile">A</div></div>
+      </header>
+      <section class="intro">
+        <div>
+          <div class="eyebrow">A map for the moments that matter</div>
+          <h1>Your sky, understood.</h1>
+          <p>Ancient systems. Clear evidence. A more considered view of what comes next.</p>
+        </div>
+        <div class="today" id="today">Today · your celestial brief</div>
+      </section>
+      <section class="section" id="zodiac-profiles"><h2>Understand yourself through the zodiac</h2><article class="card"><h3>Character, relationships and vocation</h3><p>Read a substantial portrait of your sign: its strengths, inner tensions, relationships, ambitions and capacity for change.</p><button class="primary" onclick="openZodiacProfile()">Explore zodiac profiles ↗</button></article></section>
+    <section class="grid">
+        <article class="card hero">
+          <div class="hero-copy">
+            <div class="eyebrow">Astrology Intelligence Engine</div>
+            <h2>Find the pattern.<br>Choose your moment.</h2>
+            <p>Bring planetary cycles, traditional knowledge and your natal chart into one thoughtful view.</p>
+            <button class="primary" onclick="runAgent('/api/natal')">Explore your chart&nbsp; ↗</button>
+          </div>
+          <div class="orbit" aria-hidden="true">
+            <i class="ring"></i><i class="ring two"></i><i class="planet"></i><i class="satellite"></i>
+            <b class="star s1">✦</b><b class="star s2">✧</b>
+          </div>
+        </article>
+        <article class="card timing" id="timing">
+          <div class="timing-head"><div class="eyebrow">Timing intelligence</div><span class="status">Evidence-led</span></div>
+          <h2>See the signals,<br>not just the stars.</h2>
+          <p>Explore dated transitions, a five-year outlook and practical preparation. Western transits and Lahiri periods remain clearly separated.</p>
+          <div class="timing-foot"><span class="chip">Transits</span><span class="chip">Planetary periods</span><span class="chip">Source-aware</span><button class="primary" onclick="runAgent('/api/agents/life-periods')">Open life chapters ↗</button></div>
+        </article>
+        <div class="section-head" id="explore"><h2>Explore your chart</h2><a href="#chart">Set up birth details&nbsp; ↗</a></div>
+        <article class="card feature"><div class="icon">☉</div><h3>Natal intelligence</h3><p>Planet placements, dignity, aspects and house themes.</p><button onclick="runAgent('/api/natal')">Build natal chart&nbsp; ↗</button></article>
+        <article class="card feature"><div class="icon">♡</div><h3>Compatibility</h3><p>Compare two charts through selected synastry evidence.</p><button onclick="compareCharts()">Compare charts&nbsp; ↗</button></article>
+        <article class="card feature"><div class="icon">✧</div><h3>Career &amp; purpose</h3><p>Explore career-house placements and the chart ruler.</p><button onclick="runAgent('/api/agents/career')">Explore career&nbsp; ↗</button></article>
+        <article class="card feature"><div class="icon">⌖</div><h3>GeoAstrology</h3><p>Compare whole-sign house emphasis across locations.</p><button onclick="exploreGeo()">Explore a place&nbsp; ↗</button></article>
+        <div class="section-head"><h2>Deeper perspectives from your library</h2></div>
+        <article class="card feature"><div class="icon">☼</div><h3>Merton</h3><p>Explore a calculated Sun-centred chart and its historical symbolism.</p><button onclick="runAgent('/api/agents/historical',{specialist:'merton'})">Open heliocentric reading ↗</button></article>
+        <article class="card feature"><div class="icon">◈</div><h3>Daath</h3><p>Understand how planetary condition is read in context.</p><button onclick="runAgent('/api/agents/historical',{specialist:'daath'})">Open method study ↗</button></article>
+        <article class="card feature"><div class="icon">✦</div><h3>Raleigh</h3><p>A Hermetic reflection guide about rhythm and change.</p><button onclick="runAgent('/api/agents/historical',{specialist:'raleigh'})">Open reflection guide ↗</button></article>
+        <div class="section-head"><h2>Choose your depth</h2><span>Plan preview</span></div>
+        <article class="card feature"><h3>Free</h3><p>Your core Western natal reading, chart and bibliography.</p><button onclick="runAgent('/api/natal')">Start with your natal reading ↗</button></article>
+        <article class="card feature"><h3>Plus</h3><p>Deeper specialist perspectives, compatibility, career, locations and timing.</p><p class="report-note">Pricing to be set. All implemented tools are open for this staging preview; paid access is not active.</p><button onclick="runAgent('/api/agents/historical')">Explore the Plus preview ↗</button></article>
+        <div class="bottom">
+          <article class="card chart-form" id="chart">
+            <div class="eyebrow">Begin with your birth details</div>
+            <h2>Your chart starts here.</h2>
+            <div class="form-grid">
+              <label>Birth year<input id="year" type="number" value="1975" min="1" max="9999"></label>
+              <label>Month<input id="month" type="number" value="2" min="1" max="12"></label>
+              <label>Day<input id="day" type="number" value="8" min="1" max="31"></label>
+              <label>Hour<input id="hour" type="number" value="11" min="0" max="23"></label>
+              <label>Minute<input id="minute" type="number" value="20" min="0" max="59"></label>
+              <label>UTC offset<input id="offset" type="number" value="2" step="0.25" min="-12" max="14"></label><label>Birth latitude<input id="latitude" type="number" value="37.9838" step="any" min="-89" max="89"></label><label>Birth longitude<input id="longitude" type="number" value="23.7275" step="any" min="-180" max="180"></label>
+            </div>
+            <div class="form-actions"><button class="primary" onclick="runAgent('/api/agents/analyze')">Generate my reading</button><small>Use the birth location and UTC offset at birth.</small></div>
+          </article>
+          <article class="card insight">
+            <div class="eyebrow">Your personal reading</div>
+            <h2>Explore what your chart reveals.</h2>
+            <p>Astrology is used here as a reflective framework. Timing signals are not validated predictions.</p>
+            <label>Ask about your chart<input id="question" type="text" placeholder="What themes should I focus on this year?"></label><div class="form-actions"><button class="primary" onclick="askChart()">Ask the chart ↗</button></div><div id="result" role="status" aria-live="polite">Choose a chart tool above. Your report opens in a dedicated reading window.</div>
+          </article>
+        </div>
+      </section>
+      <p class="disclaimer">Astrology is a cultural and reflective practice, not a substitute for professional medical, financial or legal advice.</p>
+    </main>
+  </div>
+  <dialog id="reading-dialog" aria-labelledby="report-title">
+    <div class="report-header"><h2 id="report-title">Your reading</h2><button type="button" onclick="document.querySelector('#reading-dialog').close()" aria-label="Close reading">Close ✕</button></div>
+    <div id="report-content" aria-live="polite"></div>
+  </dialog>
+  <script>
+
+    const $ = selector => document.querySelector(selector);
+    const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+    const nice = value => String(value ?? '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    const HOUSE_THEMES = {1:'identity and self-expression',2:'resources, values and income',3:'communication and learning',4:'home and foundations',5:'creativity and pleasure',6:'daily work and routines',7:'partnerships',8:'shared resources and change',9:'higher learning, travel and beliefs',10:'career and public life',11:'networks and long-term aims',12:'reflection and private life'};
+    const SIGN_THEMES = {Aries:'initiative and independence',Taurus:'steadiness and tangible values',Gemini:'curiosity and communication',Cancer:'care and belonging',Leo:'creative expression and visibility',Virgo:'discernment and practical improvement',Libra:'balance and cooperation',Scorpio:'depth and transformation',Sagittarius:'exploration and meaning',Capricorn:'structure and long-term effort',Aquarius:'ideas and collective interests',Pisces:'imagination and sensitivity'};
+    const GLYPHS = {Sun:'☉',Moon:'☽',Mercury:'☿',Venus:'♀',Mars:'♂',Jupiter:'♃',Saturn:'♄',Uranus:'♅',Neptune:'♆',Rahu:'☊',Ketu:'☋'};
+    const TITLES = {'/api/natal':'Your natal reading','/api/agents/analyze':'Your chart reading','/api/agents/career':'Career & purpose','/api/agents/timing':'Timing intelligence','/api/agents/life-periods':'Your life chapters','/api/agents/compatibility':'Compatibility reading','/api/agents/geo':'Location comparison','/api/agents/ask':'Ask your chart'};
+    let requestSequence = 0;
+    $('#today').textContent = 'Today · ' + new Intl.DateTimeFormat(undefined,{weekday:'short',month:'long',day:'numeric'}).format(new Date());
+    function birthValues() {
+      const values = {};
+      for (const key of ['year','month','day','hour','minute','latitude','longitude']) values[key] = Number($('#'+key).value);
+      values.utc_offset = Number($('#offset').value); values.months = 12;
+      const test = new Date(0); test.setUTCFullYear(values.year,values.month-1,values.day);
+      if (test.getUTCFullYear() !== values.year || test.getUTCMonth() !== values.month-1 || test.getUTCDate() !== values.day) throw new Error('Please enter a valid birth date.');
+      for (const input of document.querySelectorAll('#chart input')) if (!input.value || !input.checkValidity()) throw new Error('Please check your birth details and coordinates.');
+      return values;
+    }
+    function openReading(title, html) {
+      $('#report-title').textContent = title; $('#report-content').innerHTML = html;
+      const dialog = $('#reading-dialog');
+      if (!dialog.open) dialog.showModal();
+    }
+    function section(title, html) { return '<section class="report-section"><h3>'+esc(title)+'</h3>'+html+'</section>'; }
+    function list(items) { return '<ul>'+items.map(item=>'<li>'+esc(item)+'</li>').join('')+'</ul>'; }
+    function chartWheel(chart) {
+      const signs=['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
+      const ascIndex=signs.indexOf(chart.ascendant.sign), origin=ascIndex*30;
+      const zodiac=chart.zodiac||'Lahiri sidereal';
+      const point=(angle,r)=>{const a=angle*Math.PI/180;return [220+r*Math.cos(a),220-r*Math.sin(a)];};
+      let svg='<svg class="chart-wheel" viewBox="0 0 440 440" role="img" aria-label="Natal chart with twelve whole-sign houses"><title>'+esc(zodiac)+' natal chart · Whole-sign houses</title><circle cx="220" cy="220" r="205" fill="#080e23" stroke="#e7c68d" stroke-width="1"/><circle cx="220" cy="220" r="156" fill="none" stroke="#68749a"/><circle cx="220" cy="220" r="105" fill="none" stroke="#354366"/>';
+      for(let i=0;i<12;i++){
+        const boundary=point(180-i*30,205), inner=point(180-i*30,105), label=point(165-i*30,181), house=point(165-i*30,124);
+        svg+='<path d="M '+inner.join(' ')+' L '+boundary.join(' ')+'" stroke="#354366"/><text x="'+label[0]+'" y="'+label[1]+'" text-anchor="middle" dominant-baseline="middle" fill="#cdd7f1" font-size="10">'+esc(signs[(ascIndex+i)%12])+'</text><text x="'+house[0]+'" y="'+house[1]+'" text-anchor="middle" fill="#8e9bbc" font-size="11">'+(i+1)+'</text>';
+      }
+      Object.entries(chart.planets).forEach(([name,p],i)=>{
+        const pos=point(180-(Number(p.longitude)-origin),i%2?140:151);
+        svg+='<text x="'+pos[0]+'" y="'+pos[1]+'" text-anchor="middle" dominant-baseline="middle" fill="#e7c68d" font-size="18"><title>'+esc(name+' in '+p.sign+' · house '+p.house)+'</title>'+esc(GLYPHS[name]||name.slice(0,2))+'</text>';
+      });
+      svg+='<text x="220" y="213" text-anchor="middle" fill="#e7c68d" font-size="16">'+esc(chart.ascendant.sign)+' rising</text><text x="220" y="237" text-anchor="middle" fill="#a4b1cd" font-size="12">'+esc(zodiac)+' · Whole sign</text></svg>';
+      return svg;
+    }
+    function renderNatal(chart, aspects=[]) {
+      const asc=chart.ascendant, sun=chart.planets.Sun, moon=chart.planets.Moon;
+      const overview='<p>Your Ascendant is <strong>'+esc(asc.sign)+'</strong> at '+Number(asc.sign_deg).toFixed(1)+'°. Your Sun is in <strong>'+esc(sun.sign)+'</strong> and your Moon in <strong>'+esc(moon.sign)+'</strong>.</p>';
+      const planets='<div class="planet-list">'+Object.entries(chart.planets).map(([name,p])=>'<div class="planet-row"><strong>'+esc(name)+' · '+esc(p.sign)+' '+Number(p.sign_deg).toFixed(1)+'°</strong><p>House '+esc(p.house)+' — '+esc(HOUSE_THEMES[p.house])+'.'+(p.retrograde?' Retrograde.':'')+'</p>'+(p.nakshatra?'<p>'+esc(p.nakshatra)+' · Pada '+esc(p.pada)+'</p>':'')+'</div>').join('')+'</div>';
+      return section(chart.zodiac==='Tropical'?'Your Western natal chart':'Lahiri specialist chart',chartWheel(chart)+overview)+section('Planet placements',planets)+(aspects.length?section('Major aspects',list(aspects.map(i=>i.planets.join(' and ')+' form a '+i.aspect+' with an orb of '+i.orb+'°.'))):'');
+    }
+    function renderLahiri(chart) {return '<details class="report-section"><summary>Lahiri · specialist zodiac analysis</summary>'+renderNatal(chart)+'<p class="report-note">Sidereal Lahiri positions and nakshatras. The Western book passages above are not applied to these sign placements.</p></details>';}
+    function renderHistorical(reports) {
+      return reports.map(r=>section(r.title,'<p class="report-note">'+esc(r.basis)+'</p>'+r.paragraphs.map(p=>'<p>'+esc(p)+'</p>').join('')+'<details><summary>Method and current coverage</summary><p>'+esc(r.scope)+'</p>'+(r.id==='merton'?list(Object.entries(r.evidence).map(([name,p])=>name+' · '+p.sign+' '+Number(p.degree).toFixed(1)+'°')):'')+'</details>')).join('');
+    }
+    function renderHistoricalBibliography(reports) {
+      return section('Specialist bibliography','<ol>'+reports.flatMap(r=>r.references).map(c=>'<li>'+esc(c.author)+' · <em>'+esc(c.title)+'</em> · '+esc(c.chapter)+' · printed p. '+esc(c.printed_page)+' / PDF p. '+esc(c.pdf_page)+'</li>').join('')+'</ol>');
+    }
+    function readableDate(value) {
+      const d=new Date(value+'T12:00:00Z');
+      return Number.isNaN(d.getTime())?value:new Intl.DateTimeFormat('en-GB',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'}).format(d);
+    }
+    function renderLifeReport(report, compact=false, includeReferences=true) {
+      if(!report)return '';
+      const chapter=c=>section(c.planet+' · '+c.title,'<p class="report-note">'+esc(readableDate(c.start))+' – '+esc(readableDate(c.end))+(c.start_is_report_boundary?' · already in progress; shown from the report start':'')+(c.end_is_horizon?' · report horizon':'')+'</p>'+c.paragraphs.map(p=>'<p>'+esc(p)+'</p>').join('')+'<h4>Ways to prepare</h4>'+list(c.preparation));
+      let html=section(report.title,'<p>'+esc(report.intro)+'</p>');
+      html+=section('The chapter you are in now',(report.current_chapters||[]).map(chapter).join(''));
+      if(report.next_transition){const n=report.next_transition;html+=section('Your next transition','<p>On approximately '+esc(readableDate(n.start))+', '+esc(n.planet)+' changes into house '+esc(n.house)+', moving from '+esc((n.from_title||'the current chapter').toLowerCase())+' toward '+esc(n.title.toLowerCase())+' into the next review chapter.</p>'+chapter(n));}
+      const years=(report.yearly||[]).map(y=>'<details class="report-section"><summary>'+esc(y.year)+' · '+esc(y.topics.join(' / '))+'</summary><p>Areas to review during this year: '+esc(y.topics.join('; '))+'.</p><h4>Preparation priorities</h4>'+list(y.preparation)+y.transitions.map(chapter).join('')+'</details>').join('');
+      html+=section('Your year-by-year outlook',years);
+      const vedic=report.vedic||{};
+      html+='<details class="report-section"><summary>Lahiri · lifetime period calendar</summary><p>'+esc(vedic.note||'')+'</p><p>Current major period: '+esc(vedic.major_lord||'unavailable')+(vedic.major_end?' · ends '+esc(readableDate(vedic.major_end)):'')+'. Current subperiod: '+esc(vedic.sub_lord||'unavailable')+(vedic.sub_end?' · ends '+esc(readableDate(vedic.sub_end)):'')+'.</p>'+list((vedic.lifetime||[]).map(p=>p.lord+' · '+readableDate(p.start)+' – '+readableDate(p.end)+' · approximate ages '+p.age_start+'–'+p.age_end+(p.current?' · current':'')+(p.end_is_horizon?' · age-100 display limit':'')))+'<h4>Subperiod changes within this outlook</h4>'+list((vedic.subperiods||[]).map(p=>p.major_lord+' / '+p.lord+' · '+readableDate(p.start)+' – '+readableDate(p.end)+(p.current?' · current':'')))+'</details>';
+      html+='<details class="report-section"><summary>Timing method and coverage</summary><p>'+esc(report.method)+'</p><p>'+esc(report.limitations)+'</p></details>';
+      if(includeReferences)html+=section('Timing bibliography','<ol>'+(report.references||[]).map(c=>'<li>'+esc(c.author)+' · <em>'+esc(c.title)+'</em> · '+esc(c.chapter)+' · printed p. '+esc(c.printed_page)+' / PDF p. '+esc(c.pdf_page)+'</li>').join('')+'</ol>');
+      return compact?'<details class="report-section"><summary>Your life chapters · dates and preparation</summary>'+html+'</details>':html;
+    }
+    function renderBookReport(report, specialist='') {
+      if(!report)return '';
+      if(!report.reading)return section('Reading unavailable','<p>The narrative could not be prepared. Please try again.</p>');
+      const narrative=report.reading.sections.map(item=>section(item.title,item.paragraphs.map(p=>'<p>'+esc(p)+'</p>').join(''))).join('');
+      const planetary=(report.reading.planet_sections||[]).map(item=>section(item.title,item.paragraphs.map(p=>'<p>'+esc(p)+'</p>').join(''))).join('');
+      const houses=(report.reading.house_sections||[]).map(item=>'<details class="report-section"><summary>'+esc(item.title)+'</summary>'+item.paragraphs.map(p=>'<p>'+esc(p)+'</p>').join('')+'</details>').join('');
+      const references=report.reading.references.map(c=>'<li>'+esc(c.author)+' · <em>'+esc(c.title)+'</em> · '+esc(c.chapter)+' · printed p. '+esc(c.printed_page)+' / PDF p. '+esc(c.pdf_page)+'</li>').join('');
+      return section('Your natal reading','<p class="report-note">Western tropical astrology · A reading of your underlying life themes</p>')+narrative+(report.zodiac_profile?'<details class="report-section"><summary>'+esc(report.zodiac_profile.sign)+' · your zodiac profile</summary>'+renderZodiacProfile(report.zodiac_profile,false)+'</details>':'')+renderLifeReport(report.life_report,true,false)+
+        (planetary?section('Your planets: character and expression',planetary):'')+
+        (houses?section('Your twelve houses','<p>Each house describes an area of life. Open a house to see its planets and ruling connections.</p>'+houses):section('Houses require a birth location','<p>Planetary sign readings are available, but houses and their rulers need a birth location and a reliable birth time.</p>'))+
+        '<details class="report-section"><summary>View your chart and calculation details</summary>'+(report.chart?renderNatal(report.chart):'')+'<p>'+esc(report.basis_note)+'</p></details>'+
+        ((report.reading.esoteric_sections||[]).length?'<details class="report-section"><summary>Alan Leo · esoteric reflection</summary>'+report.reading.esoteric_sections.map(item=>section(item.title,item.paragraphs.map(p=>'<p>'+esc(p)+'</p>').join(''))).join('')+'</details>':'')+specialist+(report.specialists?renderHistorical(report.specialists):'')+section('Bibliography and interpretation notes','<ol>'+references+'</ol><p class="report-note">'+esc(report.reading.method)+'</p><p class="report-note">'+esc(report.reading.delineation_note||'')+'</p><details><summary>How the books are used</summary><p>'+esc(report.coverage)+'</p><p>'+esc(report.other_books)+'</p></details>')+(report.specialists?renderHistoricalBibliography(report.specialists):'');
+    }
+    function renderCareerPlain(agent) {
+      const evidence=agent.evidence||[], placements=evidence.filter(i=>i.type==='career_house_placement');
+      const names=house=>placements.filter(i=>Number(i.house)===house).map(i=>i.planet);
+      const paragraphs=[];
+      if(names(10).length) paragraphs.push('Work and public responsibility are prominent in this reading. The useful question is where you want your contribution to be recognized, and what you are prepared to develop consistently over time.');
+      if(names(2).length) paragraphs.push('Your work also connects with the way you build security. Consider which skills and resources you can develop into a dependable foundation, alongside what gives the work personal value.');
+      if(names(11).length) paragraphs.push('There is an emphasis on the people and goals surrounding your work. Professional relationships, shared projects and longer-term aims offer useful areas to explore when deciding your next direction.');
+      const ruler=evidence.find(i=>i.type==='ascendant_ruler');
+      if(ruler && Number(ruler.house)===9)paragraphs.push('Learning and broadening your perspective add another thread. Further study, teaching, travel or work across cultures are possibilities to explore if they fit your experience and interests.');
+      if(!paragraphs.length)paragraphs.push('The calculated chart does not provide enough career indicators for a detailed reading yet.');
+      return section('Career & purpose',paragraphs.map(p=>'<p>'+esc(p)+'</p>').join('')+'<p class="report-note">This specialist uses the Lahiri chart. These are general interpretations of house themes, not yet a complete career reading from the uploaded books. They do not select a profession for you.</p><details><summary>View the chart factors behind this reading</summary>'+list(placements.map(i=>i.planet+' in '+i.sign+', house '+i.house))+'</details>');
+    }
+    function renderTimingPlain(agent) {
+      const descriptions={love:'affection and close connections',home_property:'home, living arrangements and family priorities',luxury_assets:'comfort, possessions and lifestyle choices',sex_chemistry:'attraction and intimacy',business:'work projects and business relationships',marriage_commitment:'commitment and expectations within a partnership',travel_foreign:'travel, learning and connections beyond your usual surroundings',money:'income, spending and financial priorities',career:'career direction and responsibilities',socialization:'friendships and social connections',earned_income:'income from your work'};
+      const windows=(agent.evidence||[]).filter(i=>i.type==='timing_window'||i.type==='monthly_activation');
+      const rows=windows.map(i=>{const areas=(i.signals||i.top||[]).slice(0,3).map(v=>descriptions[v.area]||nice(v.area));const d=new Date(i.month+'-01T12:00:00Z');const month=Number.isNaN(d.getTime())?i.month:new Intl.DateTimeFormat('en',{month:'long',year:'numeric',timeZone:'UTC'}).format(d);return '<article class="planet-row"><h4>'+esc(month)+'</h4><p>The calculated timing pattern gives more emphasis to '+esc(areas.join('; '))+'. Treat these as areas to review when considering your plans for this month.</p></article>';}).join('');
+      return section('Your timing outlook','<p>This calendar shows which life areas receive the most emphasis in the current calculations. It does not identify events that will happen. Read it alongside your own plans and circumstances.</p>'+rows+'<p class="report-note">Based on the existing Lahiri timing calculations. These monthly themes have not yet been synthesized using the full bibliography.</p>');
+    }
+    function renderAgent(agent) {
+      if(agent.agent==='Career Agent')return renderCareerPlain(agent);
+      if(['Multi-model Predictive Timing Agent','Transit Intelligence Agent'].includes(agent.agent))return renderTimingPlain(agent);
+      const evidence=agent.evidence||[], rows=[];
+      for(const item of evidence){
+        switch(item.type){
+          case 'vimshottari_current': rows.push('Current major period: '+(item.mahadasha||'unavailable')+'. Current subperiod: '+(item.antardasha||'unavailable')+'.'+(item.antardasha_end?' This subperiod ends '+item.antardasha_end.slice(0,10)+'.':''));break;
+          case 'career_house_placement': rows.push(item.planet+' is in '+item.sign+' in house '+item.house+', bringing symbolic emphasis to '+HOUSE_THEMES[item.house]+'.');break;
+          case 'ascendant_ruler': rows.push('Your chart ruler, '+item.planet+', is in '+item.sign+' in house '+item.house+' — '+HOUSE_THEMES[item.house]+'.');break;
+          case 'cross_chart_aspect': rows.push('Your '+item.a+' forms a '+item.aspect+' with the other chart’s '+item.b+' (orb '+item.orb+'°). '+({conjunction:'This highlights a shared focus.',sextile:'Traditionally read as an opportunity for cooperation.',trine:'Traditionally read as a point of ease.',square:'Traditionally read as a contrast to work through.',opposition:'Traditionally read as contrasting perspectives to balance.'}[item.aspect]||''));break;
+          case 'placement_pair': rows.push(item.planet+': your chart is in '+item.person_a+'; the second chart is in '+item.person_b+'.');break;
+          case 'relocated_ascendant': rows.push('At the selected location, the Ascendant changes from '+item.natal_sign+' to '+item.relocated_sign+' '+Number(item.relocated_degree).toFixed(1)+'°.');break;
+          case 'relocated_house_change': rows.push(item.planet+' moves from house '+item.natal_house+' to house '+item.relocated_house+', shifting the symbolic focus toward '+HOUSE_THEMES[item.relocated_house]+'.');break;
+          case 'timing_window': rows.push(item.month+': the strongest calculated themes are '+item.signals.map(s=>nice(s.area)).join(', ')+'.');break;
+          case 'monthly_activation': rows.push(item.month+': strongest activation themes — '+(item.top||[]).slice(0,3).map(s=>nice(s.area)).join(', ')+'.');break;
+          case 'slow_planet_sign_change': rows.push(item.date+': '+item.planet+' changes from '+item.from_sign+' to '+item.to_sign+'.');break;
+        }
+      }
+      if(!rows.length)return '';
+      const title=({'Career Agent':'Career & purpose','Compatibility Agent':'Between the two charts','GeoAstrology Agent':'A different location','Vimshottari Timing Agent':'Your current planetary periods','Transit Intelligence Agent':'Monthly transit themes','Multi-model Predictive Timing Agent':'Your timing calendar'}[agent.agent]||agent.agent);
+      const note=(agent.notes||[]).filter(n=>!n.includes('dataset')).map(n=>'<p class="report-note">'+esc(n)+'</p>').join('');
+      return section(title,list(rows)+note);
+    }
+    function renderReading(body) {
+      if(body.personal_journey)return renderCalculatedJourney(body.personal_journey);
+      if(body.zodiac_profile && !body.reading && !body.natal_book_report)return renderZodiacProfile(body.zodiac_profile);
+      if(body.life_report)return renderLifeReport(body.life_report);
+      if(body.historical_specialists)return renderHistorical(body.historical_specialists)+renderHistoricalBibliography(body.historical_specialists);
+      if(body.planets && body.ascendant)return body.book_report?renderBookReport(body.book_report,renderLahiri(body)):renderNatal(body);
+      if(body.agents){
+        const natal=body.agents.find(a=>a.agent==='Natal / Genethliacal Agent');
+        let html='';
+        if(natal && !body.natal_book_report){
+          const asc=natal.evidence.find(i=>i.type==='ascendant'), planets={};
+          natal.evidence.filter(i=>i.type==='planet_placement').forEach(p=>planets[p.planet]={...p,sign_deg:p.degree,longitude:['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'].indexOf(p.sign)*30+p.degree,retrograde:p.condition?.includes('retrograde')});
+          if(asc && planets.Sun && planets.Moon)html+=renderNatal({ascendant:{...asc,sign_deg:asc.degree},planets},natal.evidence.filter(i=>i.type==='natal_aspect'));
+        }
+        for(const name of ['Vimshottari Timing Agent','Career Agent','Multi-model Predictive Timing Agent']){
+          const agent=body.agents.find(a=>a.agent===name);if(agent)html+=renderAgent(agent);
+        }
+        if(body.natal_book_report)return renderBookReport(body.natal_book_report,html+(body.lahiri_chart?renderLahiri(body.lahiri_chart):''));
+        return html||section('Reading unavailable','<p>No chart findings were returned. Please check your birth details and try again.</p>');
+      }
+      if(body.answer){
+        const answer=body.answer.primary;
+        if(answer?.text)return section('Your question','<p>'+esc(body.answer.question)+'</p>')+section('Your answer','<div class="answer-text">'+esc(answer.text)+'</div>')+(body.answer.verification?.text?section('Review','<div class="answer-text">'+esc(body.answer.verification.text)+'</div>'):'');
+        return section('AI answer unavailable','<p>AI answers are not enabled in this preview yet. Your calculated natal, career and timing readings are available.</p><button class="primary" onclick="runAgent(&quot;/api/agents/analyze&quot;)">Open my calculated reading</button>');
+      }
+      return renderAgent(body)||section('No findings','<p>No matching chart findings were returned.</p>');
+    }
+    async function runAgent(path, extra={}) {
+      const sequence=++requestSequence, title=TITLES[path]||'Your reading';
+      openReading(title,'<p role="status">Preparing your reading…</p>');
+      try{
+        const values=birthValues();
+        const response=await fetch(path+'?'+new URLSearchParams({...values,...(path==='/api/natal'?{book_report:1}:{}),...extra}),{headers:{Accept:'application/json'}});
+        const body=await response.json();
+        if(!response.ok)throw new Error(body.error||'We could not calculate this reading. Please check your inputs.');
+        if(sequence!==requestSequence)return;
+        $('#report-content').innerHTML=renderReading(body);
+        $('#result').innerHTML='<p>'+esc(title)+' is ready.</p><button class="primary" onclick="document.querySelector(&quot;#reading-dialog&quot;).showModal()">Open reading ↗</button>';
+      }catch(error){
+        if(sequence!==requestSequence)return;
+        $('#report-content').innerHTML=section('Please check your details','<p>'+esc(error.message)+'</p>');
+      }
+    }
+    function renderZodiacProfile(profile, includeReferences=true) {
+      const body=section(profile.title,'<p>'+esc(profile.intro)+'</p>'+(profile.ruler?'<p class="report-note">Ruling planet in Belle Bart’s interpretation: '+esc(profile.ruler)+'</p>':''))+profile.sections.map(s=>section(s.title,s.paragraphs.map(p=>'<p>'+esc(p)+'</p>').join(''))).join('');
+      return body+(includeReferences?section('Profile bibliography','<ol>'+profile.references.map(c=>'<li>'+esc(c.author)+' · <em>'+esc(c.title)+'</em> · '+esc(c.chapter)+' · printed p. '+esc(c.printed_page)+' / PDF p. '+esc(c.pdf_page)+'</li>').join('')+'</ol><p class="report-note">'+esc(profile.method)+'</p>'):'');
+    }
+    let journeyProfile = null;
+    function zodiacChooser(selected='Aquarius') {
+      return '<form class="report-form" onsubmit="event.preventDefault();openZodiacProfile(document.querySelector(&quot;#profile-sign&quot;).value)"><label>Zodiac sign<select id="profile-sign">'+Object.keys(SIGN_THEMES).map(sign=>'<option'+(sign===selected?' selected':'')+'>'+esc(sign)+'</option>').join('')+'</select></label><button class="primary">Explore this sign</button></form>';
+    }
+    function journeyForm(sign) {
+      return '<details class="report-section"><summary>Connect this profile with your own journey</summary><form class="report-form" onsubmit="submitJourney(event)"><p>Enter dates as YYYY, YYYY-MM or YYYY-MM-DD. For a long period, add an end date. Your birth details use the dashboard above.</p><p class="report-note">Submitting sends these notes to this app to calculate your timeline. This preview does not save them to a database; reloading clears the page.</p><div id="journey-events">'+journeyEventRow(0)+'</div><button type="button" onclick="addJourneyEvent()">Add another turning point</button><label>How you responded and what you learned<textarea name="responses" rows="4" maxlength="3000" required></textarea></label><label>What you want to build next<textarea name="goals" rows="4" maxlength="2000" required></textarea></label><button class="primary">Calculate my journey and outlook</button><p id="journey-error" role="alert"></p></form></details>';
+    }
+    let journeyEventCount=1;
+    let journeyDraft=null;
+    function journeyEventRow(i){return '<fieldset class="report-section"><legend>Turning point '+(i+1)+'</legend><label>Date<input name="event_date_'+i+'" placeholder="YYYY, YYYY-MM or YYYY-MM-DD" maxlength="10" pattern="[0-9]{4}(-[0-9]{2}(-[0-9]{2})?)?" required></label><label>End date (optional)<input name="event_end_'+i+'" placeholder="For a period of several years" maxlength="10" pattern="[0-9]{4}(-[0-9]{2}(-[0-9]{2})?)?"></label><label>What happened<textarea name="event_description_'+i+'" rows="3" maxlength="600" required></textarea></label></fieldset>';}
+    function addJourneyEvent(){if(journeyEventCount>=12)return;$('#journey-events').insertAdjacentHTML('beforeend',journeyEventRow(journeyEventCount++));}
+    function renderCalculatedJourney(report){
+      const text=v=>'<p style="white-space:pre-wrap">'+esc(v)+'</p>';
+      const intervals=chapters=>'<details class="report-section"><summary>View every calculated Jupiter and Saturn interval</summary>'+chapters.map(c=>section(c.planet+' · '+c.title,'<p>'+esc(readableDate(c.start))+' – '+esc(readableDate(c.end))+'</p>'+c.paragraphs.map(p=>'<p>'+esc(p)+'</p>').join(''))).join('')+'</details>';
+      const contacts=rows=>'<details class="report-section"><summary>Calculated major contacts · approximate dates</summary>'+list((rows||[]).map(c=>readableDate(c.date)+': '+c.planet+' '+c.aspect+' natal '+c.target+'.'))+'<p class="report-note">These are daily-bracketed contacts, not event dates. Repeated contacts are retained; no fit score is assigned.</p></details>';
+      const events=report.events.map(e=>section(e.date+(e.end_date?' – '+e.end_date:''),text(e.description)+'<p>'+esc(e.context_summary)+'</p><p>'+esc(e.interpretation)+'</p><p class="report-note">'+esc(e.precision_note)+'</p>'+intervals(e.chapters)+contacts(e.contacts))).join('');
+      return section(report.title,'<p>Your own chronology, the calculated planetary context and your future goals are shown separately.</p>')+(report.natal_context||[]).map(s=>section(s.title,s.paragraphs.map(p=>'<p>'+esc(p)+'</p>').join(''))).join('')+section('Your turning points',events)+section('Your responses and learning',text(report.notes.responses))+section('Your goals for the next chapter',text(report.notes.goals)+'<p>These are aspirations, not promised outcomes. Choose the parts you can influence and review them alongside your actual circumstances.</p>')+section('Preparation from your own experience',list(report.preparation))+renderLifeReport(report.life_report,false,false)+section('Your upcoming planetary contacts',contacts(report.future_contacts))+section('Journey bibliography','<ol>'+report.references.map(c=>'<li>'+esc(c.author)+' · <em>'+esc(c.title)+'</em> · '+esc(c.chapter)+' · printed p. '+esc(c.printed_page)+' / PDF p. '+esc(c.pdf_page)+'</li>').join('')+'</ol><p class="report-note">'+esc(report.method)+'</p><p class="report-note">'+esc(report.privacy)+'</p>')+'<button class="primary" onclick="openZodiacProfile('+esc(JSON.stringify(report.zodiac_profile.sign))+')">Clear notes and return to profile</button>';
+    }
+    async function submitJourney(event){
+      event.preventDefault();
+      const form=new FormData(event.target),events=[];
+      for(let i=0;i<journeyEventCount;i++)events.push({date:String(form.get('event_date_'+i)||'').trim(),end_date:String(form.get('event_end_'+i)||'').trim(),description:String(form.get('event_description_'+i)||'').trim()});
+      let birth;try{birth=birthValues();}catch(error){$('#journey-error').textContent=error.message;return;}
+      journeyDraft={birth,events,responses:String(form.get('responses')||'').trim(),goals:String(form.get('goals')||'').trim()};
+      const sequence=++requestSequence;
+      openReading('Your journey and the years ahead','<p role="status">Calculating your historical intervals and five-year outlook…</p>');
+      try{
+        const response=await fetch('/api/agents/personal-journey',{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify(journeyDraft)});
+        const body=await response.json();if(sequence!==requestSequence)return;
+        if(!response.ok)throw new Error(body.error||'The journey could not be calculated.');
+        $('#report-content').innerHTML=renderCalculatedJourney(body.personal_journey);
+      }catch(error){if(sequence===requestSequence)$('#report-content').innerHTML=section('Please check your journey','<p>'+esc(error.message)+'</p><button class="primary" onclick="editJourneyDraft()">Edit your entries</button>');}
+    }
+    function editJourneyDraft(){
+      ++requestSequence;journeyEventCount=1;openReading('Edit your journey',journeyForm());
+      if(!journeyDraft)return;
+      for(let i=1;i<journeyDraft.events.length;i++)addJourneyEvent();
+      journeyDraft.events.forEach((entry,i)=>{for(const [field,key] of [['date','date'],['end','end_date'],['description','description']])document.querySelector('[name="event_'+field+'_'+i+'"]').value=entry[key]||'';});
+      for(const field of ['responses','goals'])document.querySelector('[name="'+field+'"]').value=journeyDraft[field];
+    }
+    async function openZodiacProfile(sign='Aquarius') {
+      const sequence=++requestSequence;
+      journeyProfile=null;journeyEventCount=1;journeyDraft=null;
+      openReading('Zodiac profiles',zodiacChooser(sign)+'<p role="status">Preparing the profile…</p>');
+      try {
+        const response=await fetch('/api/zodiac/profiles?'+new URLSearchParams({sign}),{headers:{Accept:'application/json'}});
+        const body=await response.json();
+        if(sequence!==requestSequence)return;
+        if(!response.ok)throw new Error(body.error||'The profile is unavailable.');
+        journeyProfile=body.zodiac_profile;
+        $('#report-content').innerHTML=zodiacChooser(sign)+renderZodiacProfile(journeyProfile)+journeyForm(sign);
+      } catch(error) {if(sequence===requestSequence)$('#report-content').innerHTML=zodiacChooser(sign)+section('Profile unavailable','<p>'+esc(error.message)+'</p>');}
+    }
+    function compareCharts() {
+      ++requestSequence;
+      openReading('Compare two charts', '<form class="report-form" onsubmit="submitCompatibility(event)"><p>Enter the second person’s birth details. The first chart uses the details on your dashboard.</p><div class="form-grid"><label>Birth date<input name="date" type="date" required></label><label>Birth time (optional)<input name="time" type="time"></label><label>UTC offset at birth<input name="offset" type="number" value="2" min="-12" max="14" step="0.25" required></label><label>Birth latitude<input name="latitude" type="number" value="37.9838" min="-89" max="89" step="any" required></label><label>Birth longitude<input name="longitude" type="number" value="23.7275" min="-180" max="180" step="any" required></label></div><p class="report-note">If the time is unknown, noon is used. Moon placement and aspects may be uncertain.</p><button class="primary" type="submit">Generate compatibility reading</button></form>');
+    }
+    function submitCompatibility(event){
+      event.preventDefault();const fields=new FormData(event.target),date=String(fields.get('date')).split('-'),time=String(fields.get('time')||'12:00').split(':');
+      runAgent('/api/agents/compatibility',{b_year:date[0],b_month:date[1],b_day:date[2],b_hour:time[0],b_minute:time[1],b_utc_offset:fields.get('offset'),b_latitude:fields.get('latitude'),b_longitude:fields.get('longitude')});
+    }
+    function exploreGeo(){
+      ++requestSequence;
+      openReading('Explore a location','<form class="report-form" onsubmit="submitGeo(event)"><p>Compare how your whole-sign houses change at a different location.</p><div class="form-grid"><label>Destination latitude<input name="latitude" type="number" min="-89" max="89" step="any" placeholder="40.7128" required></label><label>Destination longitude<input name="longitude" type="number" min="-180" max="180" step="any" placeholder="-74.0060" required></label></div><button type="submit" class="primary">Generate location reading</button></form>');
+    }
+    function submitGeo(event){event.preventDefault();const fields=new FormData(event.target);runAgent('/api/agents/geo',{target_latitude:fields.get('latitude'),target_longitude:fields.get('longitude')});}
+    function askChart(){const question=$('#question').value.trim()||$('#question').placeholder;$('#question').value=question;runAgent('/api/agents/ask',{question});}
+
+  </script>
+</body>
+</html>
+

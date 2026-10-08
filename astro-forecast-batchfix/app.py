@@ -1,4 +1,5 @@
 import os
+import math
 import tempfile
 from datetime import datetime
 from flask import Flask, render_template, request, jsonify, send_file
@@ -10,6 +11,16 @@ from astro.i18n import get_translations
 from astro.report import build_pdf_report, build_narrative_pdf
 from astro.synthesis import synthesize
 from astro.narrative import build_narrative_report, SECTION_ORDER
+from astro.agents import AstrologyOrchestrator
+from astro.book_library import BookKnowledgeLibrary
+from astro.historical_specialists import run_historical_specialists, plan_catalogue
+from astro.natal_books import build_book_natal_report, SUN_READINGS, citation
+from astro.personal_journey import build_personal_journey
+from astro.zodiac_profiles import build_zodiac_profile
+from astro.specialist_agents import (
+    AskAgent, CareerAgent, CompatibilityAgent, GeoAstrologyAgent,
+    PredictiveTimingEnsemble,
+)
 
 app = Flask(__name__)
 init_ephemeris()
@@ -77,6 +88,12 @@ def _compute_all(b, months, start):
     }
 
 
+@app.route("/platform")
+def platform_preview():
+    """Premium platform preview; the existing production homepage is unchanged."""
+    return render_template("platform.html")
+
+
 @app.route("/")
 def index():
     lang = _parse_lang(request.args)
@@ -97,6 +114,8 @@ def api_natal():
         b["year"], b["month"], b["day"], b["hour"], b["minute"],
         b["utc_offset"], b["latitude"], b["longitude"],
     )
+    if request.args.get("book_report") == "1":
+        chart["book_report"] = build_book_natal_report(chart, b["latitude"], b["longitude"])
     return jsonify(chart)
 
 
@@ -281,6 +300,234 @@ def api_narrative_pdf():
     return send_file(out_path, mimetype="application/pdf", as_attachment=True,
                       download_name=filename)
 
+
+@app.route("/api/knowledge/sources")
+def api_knowledge_sources():
+    library = BookKnowledgeLibrary()
+    return jsonify({
+        "sources": library.list_sources(),
+        "topics": library.topics(),
+    })
+
+
+@app.route("/api/knowledge/search")
+def api_knowledge_search():
+    library = BookKnowledgeLibrary()
+    query = request.args.get("q", "").strip()
+    topics = [x.strip() for x in request.args.get("topics", "").split(",") if x.strip()]
+    systems = [x.strip() for x in request.args.get("systems", "").split(",") if x.strip()]
+    source_ids = [x.strip() for x in request.args.get("sources", "").split(",") if x.strip()]
+    limit = max(1, min(int(request.args.get("limit", 8)), 50))
+
+    hits = library.search(
+        query=query,
+        topics=topics,
+        systems=systems,
+        source_ids=source_ids,
+        limit=limit,
+    )
+    return jsonify({
+        "query": query,
+        "count": len(hits),
+        "hits": [h.to_dict() for h in hits],
+        "context": library.context_block(hits),
+    })
+
+
+@app.route("/api/agents/analyze")
+def api_agents_analyze():
+    """Run the v2 specialist-agent pipeline and return inspectable evidence."""
+    b = _parse_birth(request.args)
+    months = max(1, min(int(request.args.get("months", 24)), 120))
+    start_str = request.args.get("start")
+    start = datetime.strptime(start_str, "%Y-%m-%d") if start_str else datetime.now()
+    question = request.args.get("question", "").strip()
+
+    chart = build_natal_chart(
+        b["year"], b["month"], b["day"], b["hour"], b["minute"],
+        b["utc_offset"], b["latitude"], b["longitude"],
+    )
+    birth_dt = datetime(b["year"], b["month"], b["day"], b["hour"], b["minute"])
+
+    orchestrator = AstrologyOrchestrator()
+    bundle = orchestrator.run(
+        chart=chart,
+        birth_dt=birth_dt,
+        latitude=b["latitude"],
+        longitude=b["longitude"],
+        start=start,
+        months=months,
+        question=question,
+        utc_offset=b["utc_offset"],
+    )
+    return jsonify(bundle)
+
+
+
+def _build_prefixed_chart(prefix):
+    values = {}
+    for key in ("year", "month", "day", "hour", "minute"):
+        raw = request.args.get(f"{prefix}_{key}", DEFAULTS[key])
+        values[key] = int(raw)
+    for key in ("utc_offset", "latitude", "longitude"):
+        raw = request.args.get(f"{prefix}_{key}", DEFAULTS[key])
+        values[key] = float(raw)
+    chart = build_natal_chart(
+        values["year"], values["month"], values["day"], values["hour"],
+        values["minute"], values["utc_offset"], values["latitude"], values["longitude"],
+    )
+    return values, chart
+
+
+@app.route("/api/agents/compatibility")
+def api_agent_compatibility():
+    if not all(f"b_{key}" in request.args for key in ("year", "month", "day")):
+        return jsonify({"error": "Provide b_year, b_month, and b_day for the second chart."}), 400
+    a = _parse_birth(request.args)
+    chart_a = build_natal_chart(
+        a["year"], a["month"], a["day"], a["hour"], a["minute"],
+        a["utc_offset"], a["latitude"], a["longitude"],
+    )
+    _, chart_b = _build_prefixed_chart("b")
+    return jsonify(CompatibilityAgent().run(chart_a, chart_b).to_dict())
+
+
+@app.route("/api/agents/career")
+def api_agent_career():
+    b = _parse_birth(request.args)
+    chart = build_natal_chart(
+        b["year"], b["month"], b["day"], b["hour"], b["minute"],
+        b["utc_offset"], b["latitude"], b["longitude"],
+    )
+    return jsonify(CareerAgent().run(chart).to_dict())
+
+
+@app.route("/api/agents/geo")
+def api_agent_geo():
+    b = _parse_birth(request.args)
+    try:
+        latitude = float(request.args["target_latitude"])
+        longitude = float(request.args["target_longitude"])
+    except (KeyError, ValueError):
+        return jsonify({"error": "Provide numeric target_latitude and target_longitude."}), 400
+    if not -90 <= latitude <= 90 or not -180 <= longitude <= 180:
+        return jsonify({"error": "Target coordinates are outside valid latitude/longitude ranges."}), 400
+    natal = build_natal_chart(
+        b["year"], b["month"], b["day"], b["hour"], b["minute"],
+        b["utc_offset"], b["latitude"], b["longitude"],
+    )
+    birth = {**b, "chart": natal}
+    report = GeoAstrologyAgent().run(birth, latitude, longitude, build_natal_chart)
+    return jsonify(report.to_dict())
+
+
+@app.route("/api/agents/ask")
+def api_agent_ask():
+    question = request.args.get("question", "").strip()
+    if not question:
+        return jsonify({"error": "A non-empty question is required."}), 400
+    routing = AskAgent().run(
+        question,
+        ["Natal / Genethliacal Agent", "Vimshottari Timing Agent",
+         "Transit Intelligence Agent", "Career Agent", "Compatibility Agent",
+         "GeoAstrology Agent"],
+    ).to_dict()
+    b = _parse_birth(request.args)
+    months = max(1, min(int(request.args.get("months", 24)), 120))
+    start_str = request.args.get("start")
+    start = datetime.strptime(start_str, "%Y-%m-%d") if start_str else datetime.now()
+    data = _compute_all(b, months, start)
+    synthesis = synthesize(
+        question, data["chart"],
+        {"current_mahadasha": data["current_mahadasha"],
+         "current_antardasha": data["current_antardasha"]},
+        data["monthly_scores"], data["house_change_calendar"], _parse_lang(request.args),
+    )
+    return jsonify({"routing": routing, "answer": synthesis})
+
+
+@app.route("/api/agents/timing")
+def api_agent_timing():
+    b = _parse_birth(request.args)
+    months = max(1, min(int(request.args.get("months", 24)), 120))
+    start_str = request.args.get("start")
+    start = datetime.strptime(start_str, "%Y-%m-%d") if start_str else datetime.now()
+    data = _compute_all(b, months, start)
+    dasha = [{
+        "type": "vimshottari_current",
+        "mahadasha": data["current_mahadasha"],
+        "antardasha": data["current_antardasha"],
+    }]
+    report = PredictiveTimingEnsemble().run(
+        data["monthly_scores"], dasha, data["house_change_calendar"],
+    )
+    return jsonify(report.to_dict())
+
+
+
+
+
+@app.route('/api/agents/life-periods')
+def api_life_periods():
+    b = _parse_birth(request.args)
+    chart = build_natal_chart(b['year'],b['month'],b['day'],b['hour'],b['minute'],
+                             b['utc_offset'],b['latitude'],b['longitude'])
+    report = build_book_natal_report(chart,b['latitude'],b['longitude'])
+    return jsonify({'life_report':report['life_report']})
+
+
+@app.route('/api/platform/plans')
+def api_platform_plans():
+    return jsonify(plan_catalogue())
+
+
+@app.route('/api/agents/historical')
+def api_historical_specialists():
+    b = _parse_birth(request.args)
+    chart = build_natal_chart(b['year'], b['month'], b['day'], b['hour'], b['minute'],
+                             b['utc_offset'], b['latitude'], b['longitude'])
+    reports = run_historical_specialists(chart)
+    selected = request.args.get('specialist')
+    if selected:
+        if selected not in {'merton','daath','raleigh'}:
+            return jsonify({'error':'Choose merton, daath or raleigh.'}), 400
+        reports = [r for r in reports if r['id'] == selected]
+    return jsonify({'historical_specialists':reports})
+
+
+
+@app.route('/api/zodiac/profiles')
+def api_zodiac_profiles():
+    sign = request.args.get('sign')
+    if sign:
+        if sign not in SUN_READINGS:
+            return jsonify({'error':'Choose one of the twelve zodiac signs.'}), 400
+        return jsonify({'zodiac_profile':build_zodiac_profile(sign,SUN_READINGS,citation)})
+    return jsonify({'profiles':[{'sign':sign,'title':sign+' · understanding yourself'} for sign in SUN_READINGS]})
+
+
+@app.route('/api/agents/personal-journey', methods=['POST'])
+def api_personal_journey():
+    if request.content_length and request.content_length>24000:
+        return jsonify({'error':'The journey is too long.'}),413
+    body=request.get_json(silent=True)
+    if not isinstance(body,dict) or not isinstance(body.get('birth'),dict):
+        return jsonify({'error':'Provide birth details and dated turning points.'}),400
+    try:
+        if not all(k in body['birth'] for k in ['year','month','day','hour','minute','utc_offset','latitude','longitude']):
+            raise ValueError('Birth details required.')
+        b=_parse_birth(body['birth'])
+        birth_date=datetime(b['year'],b['month'],b['day'],b['hour'],b['minute'])
+        if b['year']<1800 or birth_date>datetime.utcnow():raise ValueError('Birth date is outside the supported range.')
+        if not (math.isfinite(b['utc_offset']) and -12<=b['utc_offset']<=14 and math.isfinite(b['latitude']) and -89<=b['latitude']<=89 and math.isfinite(b['longitude']) and -180<=b['longitude']<=180):
+            raise ValueError('Birth coordinates invalid.')
+        chart=build_natal_chart(b['year'],b['month'],b['day'],b['hour'],b['minute'],b['utc_offset'],b['latitude'],b['longitude'])
+        result=build_personal_journey(chart,b['latitude'],b['longitude'],body)
+    except (ValueError,TypeError,OverflowError):
+        return jsonify({'error':'Check your birth details, dates and text limits. Dates may be YYYY, YYYY-MM or YYYY-MM-DD.'}),400
+    response=jsonify({'personal_journey':result})
+    response.headers['Cache-Control']='no-store'
+    return response
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
