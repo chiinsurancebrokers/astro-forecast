@@ -156,6 +156,68 @@ git remote add origin https://github.com/<your-username>/<repo-name>.git
 git push -u origin main
 ```
 
+## Premium platform preview
+
+The new, isolated dashboard is available at `/platform`. The existing home page
+at `/` remains unchanged. The preview connects to natal and career evidence APIs;
+account persistence, Supabase Auth/RLS wiring, and Stripe checkout remain follow-on
+integration work.
+
+## Specialist agent APIs
+
+- `GET /api/agents/analyze`: orchestrated natal, timing, transit, knowledge,
+  career and evidence-routing output.
+- `GET /api/agents/compatibility`: compares the primary chart with the second
+  chart supplied through `b_year`, `b_month`, `b_day` and optional `b_*`
+  birth parameters.
+- `GET /api/agents/career`: summarizes selected career-house and Ascendant-ruler
+  evidence.
+- `GET /api/agents/geo`: compares natal and relocated whole-sign houses using
+  `target_latitude` and `target_longitude`.
+- `GET /api/agents/ask`: routes a question to evidence domains and uses the
+  existing model-grounded synthesis.
+- `GET /api/agents/timing`: returns monthly transit, ingress and Vimshottari
+  evidence with validation disclosures.
+
+The timing ensemble does not produce probabilities or validated predictions.
+GeoAstrology compares chart placements at a supplied location; it does not yet
+compute astrocartography line paths.
+
+## Book Knowledge ingestion
+
+The source catalog distinguishes Western traditional astrology, heliocentric
+historical material, historical medical astrology, and Hermetic historical
+material. The extractor preserves source IDs, system tags, page spans, file
+hashes, and deterministic chunk IDs.
+
+Run extraction locally from the application directory:
+
+```bash
+python -m astro.book_ingest \
+  --input-dir /path/to/source-pdfs \
+  --output book_ingestion/private/source_chunks.jsonl
+```
+
+The output contains extracted source text and is private working data. It is
+excluded from Git and is not loaded by the public knowledge-search API. The
+extractor attempts OCR on sparse pages when Poppler and Tesseract are available;
+use `--no-ocr` to skip that fallback. Pages still reported as sparse need OCR or
+manual review. Review the page-level candidates and create a separate JSONL file
+of short paraphrased rules with a PDF page or chapter locator. Validate that
+curated file with:
+
+```bash
+python -m astro.book_ingest --validate-rules /path/to/curated_rules.jsonl
+```
+
+Only validated paraphrased rules can be made available to the Book Knowledge
+Agent by setting `ASTRO_KNOWLEDGE_RULES_PATH` to a private, mounted JSONL file.
+The loader rejects raw `text`/`excerpt` fields, unknown sources, duplicate
+rule IDs, and system/provenance mismatches. Vedic, Western, heliocentric,
+medical, and Hermetic material remain separately tagged; medical material is
+included only when a request explicitly selects it. Pages with sparse extracted
+text are reported for OCR review rather than treated as successfully ingested.
+
 ## Project layout
 
 ```
@@ -189,3 +251,88 @@ runtime.txt                    Python version pin
 - The monthly activation-score formula in `astro/forecast.py` is a
   documented heuristic, not a validated predictive model — treat it as a
   starting point to calibrate against logged real-world outcomes.
+# Separate methods and observation journal
+
+## Audited natal reader edition
+
+`/natal-reading` provides a detailed, printable natal report. Enter birth details
+and declare recorded/approximate birth time; POST avoids birth data in the URL.
+The browser print dialog can save the report as PDF. No report is stored by the
+application. The current reader narrative is English.
+
+`build_book_natal_report` now adds `reader_edition`, also used by the platform's
+natal report. It keeps the continuous narrative free of author names and places
+only actually used references at the end. Internal audit records retain each
+section's facts, rule context and source/page metadata. The original raw source
+structures are retained for compatibility and inspection.
+
+Before publication, tropical longitudes and the Ascendant are recomputed from
+the birth Julian day and coordinates; sign/degree/whole-sign-house consistency
+is checked. Aspect geometry is independently recomputed. Each narrative,
+planetary or house section must exactly match the approved source-derived
+template for those facts; correct citations alone cannot authorize new prose.
+Unknown source metadata, wrong aspect orbs, fabricated paragraphs and altered
+house/ruler evidence are omitted or rejected. This is structural grounding, not
+an automatic verification of the original book scans or evidence that astrology
+is scientifically valid. Nine sourced planet sections and all twelve houses are
+covered; Pluto and unsupported aspect combinations are explicitly left out.
+Life-history events are never inferred, and dated transit work stays separate.
+Explicit natal/personality questions in Ask route to this reader edition rather
+than a free-form LLM answer. Other forecast endpoints retain their existing
+experimental, uncalibrated synthesis behavior.
+
+ChatGPT plugins are not automatically deployable server APIs. No live connection
+is claimed. `check_plugin_records` is an internal numerical comparison contract:
+it requires explicit UTC birth instant, coordinates, tropical zodiac, whole-sign
+convention and finite numerical longitudes. Sign-only or mismatched records are
+excluded. Even a compatible record is a numerical cross-check only; untrusted
+plugin prose is never added to the report. There is no public snapshot upload or
+an invented API endpoint. Provider credentials/official server integration and
+privacy authorization would be required before enabling live provider calls.
+
+## Native Tarot Reading
+
+`/tarot` (Greek by default) and `/tarot?lang=en` provide an independent tarot
+feature linked from the platform navigation and mobile-visible cards. This is
+native functionality, not an embedded ChatGPT plugin or a third-party tarot API.
+It runs without AI credentials, image downloads, or external calls.
+
+`POST /api/tarot/draw` accepts JSON: `question` (optional, max 500 characters),
+`spread` (`one` or `three`), `lang` (`el` or `en`) and `reversals` (boolean).
+Python's SystemRandom samples unique cards from a full 78-card deck and chooses
+orientations. Each request is a new reading. Questions use POST bodies, not URLs;
+the route performs no database writes and returns Cache-Control: no-store.
+
+The client reveals selected cards individually or together and shows the reading
+only after all cards are revealed. It exports a UTF-8 text copy on demand. No
+browser storage is used for tarot. The browser receives the complete draw before
+the reveal animation; this is a presentation flow, not a hidden-card security
+protocol. Original editorial symbolism is used rather than copied card artwork.
+Minor cards have card-specific upright themes and rank/suit reversal prompts.
+The question is displayed as a reflection context; no AI question analysis or
+factual prediction is claimed. Symbolic tarot remains separate from astronomical
+calculations and observation-journal validation.
+
+Open `/platform` for the existing platform and `/methods` for the Western/Vedic
+comparison and local observation journal. The original `/` monitor is retained.
+
+`GET /api/agents/methods` accepts the existing birth fields and an optional
+timezone-aware ISO `at` timestamp. It computes tropical and Lahiri positions for
+the same birth instant, whole-sign houses, current transits, Western transit-to-
+natal contacts (2-degree orb), and the current Vimshottari period. It records
+the calculation engine/version and ayanamsha. No progressions, solar returns,
+combined confidence score, or predictive superiority claim is added by this view.
+Use the historical UTC offset at birth; automatic timezone lookup is not present.
+
+The journal saves only after an explicit Save action in browser local storage.
+It captures a method, future observation window, testable expectation, evaluation
+rule, original calculation snapshot and device timestamp. The UI does not edit
+the original expectation; one outcome review (match/miss/unclear) is accepted
+after the window ends. JSON export preserves these fields. Local storage and the
+device clock are editable, so this is not an independently verified registry or
+an empirical validation study. There are no server-side journal writes, account
+sync, aggregate accuracy percentages, or arbitrary sample-size validation gates.
+
+Sidereal operations explicitly set Lahiri in request threads rather than relying
+on startup initialization. Agreement between agents is dependent testimony, not
+independent evidence or a confidence percentage.

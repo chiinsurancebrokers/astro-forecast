@@ -51,6 +51,7 @@ TRANSIT_BODIES = ["Sun", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Rahu"
 
 
 def _transiting_house(jd_ut, planet_name, asc_sign):
+    swe.set_sid_mode(swe.SIDM_LAHIRI)
     if planet_name == "Ketu":
         (lon, *_r), _f = swe.calc_ut(jd_ut, swe.MEAN_NODE, EPHE_FLAGS)
         lon = (lon + 180) % 360
@@ -114,6 +115,7 @@ def house_change_calendar(start: datetime, months: int, latitude=None, longitude
     day by day, and emit each date a sign change is detected. Mirrors the
     'Major Planet House-Change Calendar' section of prior reports.
     """
+    swe.set_sid_mode(swe.SIDM_LAHIRI)
     end = start + relativedelta(months=months)
     bodies = ["Mars", "Jupiter", "Saturn", "Rahu", "Ketu"]
     last_sign = {}

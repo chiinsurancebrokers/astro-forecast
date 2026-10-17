@@ -1,0 +1,11 @@
+# Locally extracted book text and review candidates are private working data.
+book_ingestion/private/
+*.bookchunks.jsonl
+
+# Runtime secrets and local Python artifacts.
+.env
+.env.*
+!.env.example
+__pycache__/
+*.py[cod]
+.venv/

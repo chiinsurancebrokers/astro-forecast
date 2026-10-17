@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Western & Vedic · Astro Intelligence</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#080e20;color:#e7edf8}*{box-sizing:border-box}body{margin:0}main{max-width:1120px;margin:auto;padding:32px 20px 80px}a{color:#c5b3ff}h1{font-size:clamp(28px,5vw,46px);max-width:800px}h2{font-size:23px}p{line-height:1.7}.muted,small{color:#aebbd2}section,.card{border:1px solid #2c3753;border-radius:18px;padding:24px;margin:24px 0;background:#10192e}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px}.grid .card{margin:0}label{display:flex;flex-direction:column;gap:8px;font-size:14px}input,select,textarea,button{font:inherit;border:1px solid #455373;border-radius:9px;padding:12px;background:#101b34;color:inherit}button{cursor:pointer;background:#7054c7;margin:14px 6px 0 0}button:disabled{opacity:.5;cursor:wait}textarea{min-height:100px}table{border-collapse:collapse;width:100%}th,td{text-align:left;border-bottom:1px solid #2c3753;padding:12px;vertical-align:top}.scroll{overflow:auto}.chip{display:inline-block;border:1px solid #554574;border-radius:30px;padding:5px 12px;font-size:13px}ul{line-height:1.8}.error{color:#ffc0c0}.entry{border-top:1px solid #35415b;padding:20px 0}summary{cursor:pointer}.actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px}[hidden]{display:none!important}
+</style></head><body><main>
+<a href="/platform">← Astro Intelligence</a>
+<p class="chip">Two traditions · one inspectable calculation basis</p>
+<h1>Understand the method behind your reading.</h1>
+<p>Explore Western tropical positions alongside Vedic Lahiri timing. Keep each tradition visible, then record a specific expectation before its observation window begins.</p>
+<section><h2>Your calculation details</h2>
+<form id="compare-form"><div class="grid">
+<label>Birth date<input id="birth-date" type="date" value="1975-02-08" required></label>
+<label>Local birth time<input id="birth-time" type="time" value="11:20" required></label>
+<label>UTC offset at birth<input id="offset" type="number" value="2" min="-12" max="14" step="0.25" required></label>
+<label>Birth latitude<input id="latitude" type="number" value="37.9838" min="-89" max="89" step="any" required></label>
+<label>Birth longitude<input id="longitude" type="number" value="23.7275" min="-180" max="180" step="any" required></label>
+</div><p class="muted">Use the historical UTC offset, including daylight saving at birth. This view does not infer a timezone from coordinates.</p><button id="compare-button">Compare the systems</button></form><p id="status" role="status" aria-live="polite"></p></section>
+<div id="comparison" aria-live="polite"></div>
+<section><h2>Observation journal</h2>
+<p>Save a concrete expectation and its evaluation rule in advance. Record what happened after the window closes, including misses and unclear results.</p>
+<p class="muted">Entries are saved only in this browser when you press Save. They include the calculation snapshot but omit the birth form values. Browser storage can be edited or cleared; timestamps are device timestamps, not an independently verified registry. Export entries for your own records. This journal does not establish predictive accuracy.</p>
+<form id="journal-form"><div class="grid">
+<label>Source method<select id="source"><option value="western">Western tropical</option><option value="vedic">Vedic · Lahiri & Vimshottari</option></select></label>
+<label>Window starts<input id="window-start" type="date" required></label>
+<label>Window ends<input id="window-end" type="date" required></label>
+</div><label>What specifically do you expect to observe?<textarea id="expectation" maxlength="1200" required></textarea></label>
+<label>What would count as a match, a miss or an unclear result?<textarea id="criterion" maxlength="1200" required></textarea></label>
+<button id="save-button">Save expectation in this browser</button></form>
+<p id="journal-status" role="status" aria-live="polite"></p><button id="export-button" type="button">Export journal JSON</button>
+<div id="entries"></div></section>
+<p class="muted">Astrology is presented as cultural interpretation and reflection. Calculated positions and predictive interpretations have different evidence standards.</p>
+</main><script>
+const $=s=>document.querySelector(s);
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const KEY='astro-observation-journal-v1';
+let snapshot=null, entries=[], storageAvailable=true, calculationSequence=0;
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
+function readJournal(){try{const parsed=JSON.parse(localStorage.getItem(KEY)||'[]');if(!Array.isArray(parsed))throw Error();entries=parsed.filter(e=>e&&typeof e.id==='string'&&typeof e.window_end==='string');}catch{storageAvailable=false;$('#journal-status').textContent='Saved entries could not be read. Export or recover your browser data before creating new entries.';$('#save-button').disabled=true;}}
+function persist(next){try{localStorage.setItem(KEY,JSON.stringify(next));entries=next;renderJournal();return true;}catch{$('#journal-status').textContent='Browser storage is unavailable or full. This change was not saved.';return false;}}
+function place(p){return esc(p.sign)+' '+Number(p.sign_deg).toFixed(2)+'°'+(p.retrograde?' ℞':'');}
+function renderComparison(data){
+ const table=data.natal_comparison.map(r=>'<tr><th>'+esc(r.planet)+'</th><td>'+place(r.western)+' · house '+r.western.house+'</td><td>'+place(r.vedic)+' · house '+r.vedic.house+'</td></tr>').join('');
+ const contacts=data.western.contacts.map(c=>'<li>'+esc(c.transit)+' '+esc(c.aspect)+' natal '+esc(c.natal)+' · orb '+c.orb+'°</li>').join('');
+ const transitRows=Object.keys(data.western.transits).map(name=>'<tr><th>'+esc(name)+'</th><td>'+place(data.western.transits[name])+'</td><td>'+(data.vedic.transits[name]?place(data.vedic.transits[name]):'Outside the traditional Vedic planet set')+'</td></tr>').join('');
+ return '<section><h2>Separate methods, shared sky</h2><p>Calculated for '+esc(data.as_of)+'. Both charts use whole-sign houses and the Moshier ephemeris. Swiss Ephemeris '+esc(data.calculation.swisseph_version)+'.</p><div class="grid"><article class="card"><h3>Western tropical</h3><p>Ascendant: '+place(data.western.ascendant)+'</p><p>'+esc(data.western.scope)+'</p></article><article class="card"><h3>Vedic Timing</h3><p>Sidereal · Lahiri · Vimshottari</p><p>Ascendant: '+place(data.vedic.ascendant)+'</p><p>Major period: '+esc(data.vedic.mahadasha||'Unavailable')+' · subperiod: '+esc(data.vedic.antardasha||'Unavailable')+'</p></article></div><h3>Natal positions</h3><p class="muted">Birth ayanamsha: '+Number(data.calculation.birth_ayanamsha_degrees).toFixed(4)+'°. Different sign names can be correct for the same sky.</p><div class="scroll"><table><thead><tr><th>Planet</th><th>Western tropical</th><th>Vedic Lahiri</th></tr></thead><tbody>'+table+'</tbody></table></div><h3>Current Western transit geometry</h3>'+(contacts?'<ul>'+contacts+'</ul>':'<p>No selected contacts fall within the 2° orb at this timestamp.</p>')+'<p class="muted">An angular contact is a calculation, not a prediction of an event.</p><details><summary>Current positions in both coordinate systems</summary><div class="scroll"><table><thead><tr><th>Planet</th><th>Tropical</th><th>Lahiri</th></tr></thead><tbody>'+transitRows+'</tbody></table></div></details><h3>How synthesis works</h3><ul>'+data.interpretation_policy.map(p=>'<li>'+esc(p)+'</li>').join('')+'</ul></section>';
+}
+$('#compare-form').addEventListener('submit',async event=>{
+ event.preventDefault();const sequence=++calculationSequence;snapshot=null;$('#comparison').innerHTML='';$('#compare-button').disabled=true;$('#status').textContent='Calculating both systems…';
+ try{const date=$('#birth-date').value.split('-'),time=$('#birth-time').value.split(':');const q=new URLSearchParams({year:date[0],month:date[1],day:date[2],hour:time[0],minute:time[1],utc_offset:$('#offset').value,latitude:$('#latitude').value,longitude:$('#longitude').value});const response=await fetch('/api/agents/methods?'+q,{headers:{Accept:'application/json'}});const data=await response.json();if(!response.ok)throw Error(data.error||'Calculation failed.');if(sequence!==calculationSequence)return;snapshot=data;$('#comparison').innerHTML=renderComparison(data);$('#status').textContent='Both methods are ready. No combined confidence score is calculated.';}catch(error){$('#status').textContent=error.message;}finally{$('#compare-button').disabled=false;}
+});
+// Editing birth inputs invalidates the snapshot until it is recalculated.
+$('#compare-form').addEventListener('input',()=>{++calculationSequence;snapshot=null;$('#status').textContent='Birth details changed. Compare again before saving an expectation.';});
+$('#journal-form').addEventListener('submit',event=>{
+ event.preventDefault();if(!storageAvailable)return;
+ if(!snapshot){$('#journal-status').textContent='Calculate both systems before saving a snapshot.';return;}
+ const start=$('#window-start').value,end=$('#window-end').value;
+ if(!start||!end||start<=today()||end<start){$('#journal-status').textContent='Choose a future start date and an end date on or after it.';return;}
+ const expectation=$('#expectation').value.trim(),criterion=$('#criterion').value.trim();if(!expectation||!criterion)return;
+ const entry={id:crypto.randomUUID(),created_at:new Date().toISOString(),method:$('#source').value,window_start:start,window_end:end,expectation,criterion,snapshot,review:null};
+ if(persist([...entries,entry])){$('#journal-form').reset();$('#journal-status').textContent='Expectation saved locally with its original calculation snapshot.';}
+});
+function renderJournal(){
+ $('#entries').innerHTML=entries.length?entries.map(e=>'<article class="entry"><h3>'+esc(e.method==='vedic'?'Vedic · Lahiri & Vimshottari':'Western tropical')+'</h3><p>'+esc(e.window_start)+' → '+esc(e.window_end)+'</p><p>'+esc(e.expectation)+'</p><p><strong>Evaluation rule:</strong> '+esc(e.criterion)+'</p><small>Recorded '+esc(e.created_at)+'</small>'+(e.review?'<p><strong>Observed result: '+esc(e.review.result)+'</strong></p><p>'+esc(e.review.notes)+'</p><small>Reviewed '+esc(e.review.recorded_at)+'</small>':e.window_end<today()?'<form data-review="'+esc(e.id)+'"><label>Observed result<select name="result"><option value="match">Match</option><option value="miss">Miss</option><option value="unclear">Unclear</option></select></label><label>What happened, compared with your original rule?<textarea name="notes" maxlength="2000" required></textarea></label><button>Record outcome once</button></form>':'<p class="muted">Outcome review opens after the observation window ends.</p>')+'</article>').join(''):'<p class="muted">No saved expectations yet.</p>';
+}
+$('#entries').addEventListener('submit',event=>{
+ event.preventDefault();const form=event.target,id=form.dataset.review,entry=entries.find(e=>e.id===id);if(!entry||entry.review||entry.window_end>=today())return;
+ const values=new FormData(form),notes=String(values.get('notes')||'').trim(),result=values.get('result');if(!notes||!['match','miss','unclear'].includes(result))return;
+ if(persist(entries.map(e=>e.id===id?{...e,review:{result,notes,recorded_at:new Date().toISOString()}}:e)))$('#journal-status').textContent='Outcome recorded. The original expectation remains unchanged.';
+});
+$('#export-button').addEventListener('click',()=>{
+ const blob=new Blob([JSON.stringify({schema_version:1,exported_at:new Date().toISOString(),provenance:'Local browser records; editable storage and device clock. Not independently verified or evidence of predictive validity.',entries},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='astro-observation-journal-'+today()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+});
+readJournal();renderJournal();
+</script></body></html>
