@@ -88,3 +88,13 @@ rule carries a system tag such as `VEDIC`, `WESTERN_TRADITIONAL`, or
   original expectations in the UI and permits a one-time outcome review after
   the observation window. Browser storage and device clocks are editable; never
   describe this as a tamper-proof registry or a validation study.
+
+## Tarot feature
+
+- `/tarot` is a separate EL/EN reflective tool with a 78-card deck; no birth data
+  or astronomical computation is required.
+- Use server-side SystemRandom without replacement and optional reversals.
+- Do not claim third-party plugin integration, AI interpretation or predictions.
+- Questions use bounded POST JSON and are not stored by this application.
+- Original editorial card themes are symbolic, including Death and Justice;
+  never turn them into literal medical, legal or financial claims.

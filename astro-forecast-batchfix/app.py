@@ -3,6 +3,7 @@ import math
 import tempfile
 from datetime import datetime
 from flask import Flask, render_template, request, jsonify, send_file
+from werkzeug.exceptions import HTTPException
 
 from astro.ephemeris import init_ephemeris, build_natal_chart
 from astro.dasha import build_mahadashas, current_period
@@ -35,6 +36,10 @@ def handle_any_error(e):
     "Unexpected token '<'" instead of the real error. Non-API routes
     (the index page) keep Flask's normal HTML handling.
     """
+    if isinstance(e, HTTPException):
+        if request.path.startswith('/api/'):
+            return jsonify({'error':e.description}), e.code
+        return e
     app.logger.exception("Unhandled error on %s", request.path)
     if request.path.startswith("/api/"):
         return jsonify({"error": str(e), "type": type(e).__name__}), 500
@@ -97,6 +102,36 @@ def platform_preview():
 @app.route('/methods')
 def methods_preview():
     return render_template('methods.html')
+
+
+@app.route('/tarot')
+def tarot_page():
+    from astro.tarot_i18n import UI
+    lang = request.args.get('lang', 'el')
+    lang = lang if lang in UI else 'el'
+    return render_template('tarot.html', lang=lang, t=UI[lang])
+
+
+@app.route('/api/tarot/draw', methods=['POST'])
+def api_tarot_draw():
+    from astro.tarot import draw_reading
+    if request.content_length and request.content_length > 4096:
+        return jsonify({'error':'Request is too large.'}), 413
+    if not request.is_json:
+        return jsonify({'error':'Send a JSON object.'}), 400
+    body=request.get_json(silent=True)
+    if not isinstance(body,dict):
+        return jsonify({'error':'Send a JSON object.'}), 400
+    try:
+        reading=draw_reading(question=body.get('question',''),
+                             spread=body.get('spread','three'),
+                             lang=body.get('lang','el'),
+                             reversals=body.get('reversals',True))
+    except (ValueError, TypeError):
+        return jsonify({'error':'Check the question (up to 500 characters), language (el/en), spread (one/three) and reversals (true/false).'}), 400
+    response=jsonify(reading)
+    response.headers['Cache-Control']='no-store'
+    return response
 
 
 @app.route('/api/agents/methods')

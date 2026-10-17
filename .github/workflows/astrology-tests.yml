@@ -39,3 +39,5 @@ jobs:
         run: node tests/platform_ui.test.cjs
       - name: Verify prospective observation journal
         run: node tests/methods_ui.test.cjs
+      - name: Verify tarot reveal flow
+        run: node tests/tarot_ui.test.cjs

@@ -253,6 +253,29 @@ runtime.txt                    Python version pin
   starting point to calibrate against logged real-world outcomes.
 # Separate methods and observation journal
 
+## Native Tarot Reading
+
+`/tarot` (Greek by default) and `/tarot?lang=en` provide an independent tarot
+feature linked from the platform navigation and mobile-visible cards. This is
+native functionality, not an embedded ChatGPT plugin or a third-party tarot API.
+It runs without AI credentials, image downloads, or external calls.
+
+`POST /api/tarot/draw` accepts JSON: `question` (optional, max 500 characters),
+`spread` (`one` or `three`), `lang` (`el` or `en`) and `reversals` (boolean).
+Python's SystemRandom samples unique cards from a full 78-card deck and chooses
+orientations. Each request is a new reading. Questions use POST bodies, not URLs;
+the route performs no database writes and returns Cache-Control: no-store.
+
+The client reveals selected cards individually or together and shows the reading
+only after all cards are revealed. It exports a UTF-8 text copy on demand. No
+browser storage is used for tarot. The browser receives the complete draw before
+the reveal animation; this is a presentation flow, not a hidden-card security
+protocol. Original editorial symbolism is used rather than copied card artwork.
+Minor cards have card-specific upright themes and rank/suit reversal prompts.
+The question is displayed as a reflection context; no AI question analysis or
+factual prediction is claimed. Symbolic tarot remains separate from astronomical
+calculations and observation-journal validation.
+
 Open `/platform` for the existing platform and `/methods` for the Western/Vedic
 comparison and local observation journal. The original `/` monitor is retained.
 
