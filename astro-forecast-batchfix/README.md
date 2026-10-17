@@ -251,3 +251,28 @@ runtime.txt                    Python version pin
 - The monthly activation-score formula in `astro/forecast.py` is a
   documented heuristic, not a validated predictive model — treat it as a
   starting point to calibrate against logged real-world outcomes.
+# Separate methods and observation journal
+
+Open `/platform` for the existing platform and `/methods` for the Western/Vedic
+comparison and local observation journal. The original `/` monitor is retained.
+
+`GET /api/agents/methods` accepts the existing birth fields and an optional
+timezone-aware ISO `at` timestamp. It computes tropical and Lahiri positions for
+the same birth instant, whole-sign houses, current transits, Western transit-to-
+natal contacts (2-degree orb), and the current Vimshottari period. It records
+the calculation engine/version and ayanamsha. No progressions, solar returns,
+combined confidence score, or predictive superiority claim is added by this view.
+Use the historical UTC offset at birth; automatic timezone lookup is not present.
+
+The journal saves only after an explicit Save action in browser local storage.
+It captures a method, future observation window, testable expectation, evaluation
+rule, original calculation snapshot and device timestamp. The UI does not edit
+the original expectation; one outcome review (match/miss/unclear) is accepted
+after the window ends. JSON export preserves these fields. Local storage and the
+device clock are editable, so this is not an independently verified registry or
+an empirical validation study. There are no server-side journal writes, account
+sync, aggregate accuracy percentages, or arbitrary sample-size validation gates.
+
+Sidereal operations explicitly set Lahiri in request threads rather than relying
+on startup initialization. Agreement between agents is dependent testimony, not
+independent evidence or a confidence percentage.

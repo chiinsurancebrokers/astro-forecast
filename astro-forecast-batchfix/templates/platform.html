@@ -134,6 +134,7 @@
       <div class="brand"><div class="brand-mark">✦</div><span>Astro Intelligence</span></div>
       <div class="eyebrow" style="padding:0 12px 12px">Workspace</div>
       <nav aria-label="Main navigation">
+        <a href="/methods"><span>◈</span>Western &amp; Vedic · observation journal</a>
         <a class="active" href="/platform"><span>◉</span>Overview</a>
         <a href="#natal" onclick="event.preventDefault();runAgent('/api/natal')"><span>☉</span>Natal chart</a>
         <a href="#timing" onclick="event.preventDefault();runAgent('/api/agents/timing')"><span>◷</span>Timing intelligence</a>
@@ -181,6 +182,7 @@
           <div class="timing-foot"><span class="chip">Transits</span><span class="chip">Planetary periods</span><span class="chip">Source-aware</span><button class="primary" onclick="runAgent('/api/agents/life-periods')">Open life chapters ↗</button></div>
         </article>
         <div class="section-head" id="explore"><h2>Explore your chart</h2><a href="#chart">Set up birth details&nbsp; ↗</a></div>
+        <article class="card feature"><div class="icon">◈</div><h3>Western &amp; Vedic</h3><p>Compare the calculation systems and record expectations before their observation window.</p><a href="/methods">Compare methods &amp; open journal ↗</a></article>
         <article class="card feature"><div class="icon">☉</div><h3>Natal intelligence</h3><p>Planet placements, dignity, aspects and house themes.</p><button onclick="runAgent('/api/natal')">Build natal chart&nbsp; ↗</button></article>
         <article class="card feature"><div class="icon">♡</div><h3>Compatibility</h3><p>Compare two charts through selected synastry evidence.</p><button onclick="compareCharts()">Compare charts&nbsp; ↗</button></article>
         <article class="card feature"><div class="icon">✧</div><h3>Career &amp; purpose</h3><p>Explore career-house placements and the chart ruler.</p><button onclick="runAgent('/api/agents/career')">Explore career&nbsp; ↗</button></article>

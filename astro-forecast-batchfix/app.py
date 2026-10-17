@@ -94,6 +94,33 @@ def platform_preview():
     return render_template("platform.html")
 
 
+@app.route('/methods')
+def methods_preview():
+    return render_template('methods.html')
+
+
+@app.route('/api/agents/methods')
+def api_methods():
+    from astro.methods import compare_methods
+    try:
+        b = _parse_birth(request.args)
+        datetime(b['year'], b['month'], b['day'], b['hour'], b['minute'])
+        if not all(math.isfinite(b[k]) for k in ('utc_offset','latitude','longitude')):
+            raise ValueError('Birth coordinates and offset must be finite.')
+        if not (-89 <= b['latitude'] <= 89 and -180 <= b['longitude'] <= 180
+                and -12 <= b['utc_offset'] <= 14):
+            raise ValueError('Check birth coordinates and UTC offset.')
+        at = None
+        if request.args.get('at'):
+            at = datetime.fromisoformat(request.args['at'].replace('Z', '+00:00'))
+        result = compare_methods(b, at)
+    except (ValueError, OverflowError) as error:
+        return jsonify({'error':str(error)}), 400
+    response = jsonify(result)
+    response.headers['Cache-Control'] = 'no-store'
+    return response
+
+
 @app.route("/")
 def index():
     lang = _parse_lang(request.args)

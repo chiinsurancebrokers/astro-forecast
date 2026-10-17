@@ -37,3 +37,5 @@ jobs:
           node-version: "22"
       - name: Verify platform report rendering and interactions
         run: node tests/platform_ui.test.cjs
+      - name: Verify prospective observation journal
+        run: node tests/methods_ui.test.cjs

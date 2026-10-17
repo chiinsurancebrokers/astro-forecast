@@ -73,3 +73,18 @@ Historical source material is stored as compact paraphrased rules with provenanc
 The application must not silently merge incompatible schools of astrology. Each
 rule carries a system tag such as `VEDIC`, `WESTERN_TRADITIONAL`, or
 `MEDICAL_ASTROLOGY`.
+
+## Method comparison and observation journal
+
+- `/methods` and `/api/agents/methods` expose Western tropical chart/transit
+  geometry separately from Vedic Lahiri/Vimshottari timing.
+- Use the same birth instant and declare coordinate origin, house system,
+  ephemeris version, node convention and calculation timestamp.
+- Agreement between agents using shared calculations is dependent testimony,
+  not independent validation. Do not produce confidence percentages from votes.
+- No outcome-count threshold establishes predictive validity or enables an
+  empirical calibration claim.
+- The journal is explicit-save browser storage with JSON export. It preserves
+  original expectations in the UI and permits a one-time outcome review after
+  the observation window. Browser storage and device clocks are editable; never
+  describe this as a tamper-proof registry or a validation study.

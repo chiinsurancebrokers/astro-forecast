@@ -179,7 +179,8 @@ class PredictiveTimingEnsemble:
                  "validated": False},
                 {"name": "ingressed_transits", "available": bool(transit_events),
                  "validated": False},
-                {"name": "outcome_calibration", "available": len(outcomes) >= 30,
+                {"name": "outcome_calibration", "available": False,
+                 "logged_outcomes_available": bool(outcomes),
                  "sample_size": len(outcomes), "validated": False},
             ],
         }]
@@ -195,5 +196,5 @@ class PredictiveTimingEnsemble:
         return SpecialistReport(
             self.name, "UNCALIBRATED_EVIDENCE_ENSEMBLE", evidence,
             ["Timing evidence streams are shown side by side; no probability or validated prediction is inferred.",
-             "Outcome calibration becomes available only after a sufficiently large, dated, consented outcome dataset is collected."],
+             "Logged outcomes alone do not enable calibration: prospective criteria, misses, baselines and independent evaluation are required; no sample-count threshold establishes validity."],
         )

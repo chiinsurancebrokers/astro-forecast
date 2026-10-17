@@ -92,6 +92,22 @@ VERIFICATION_SYSTEM_PROMPT = {
 }
 
 
+# Apply the same evidence rule to generation and review in both languages.
+for _prompts in (SYNTHESIS_SYSTEM_PROMPT, VERIFICATION_SYSTEM_PROMPT):
+    _prompts['en'] += (
+        ' Agreement between agents using shared data is not independent evidence '
+        'or proof of predictive accuracy. Never convert agreement or activation '
+        'scores into probabilities. Keep tropical Western and sidereal Lahiri '
+        'evidence separate; do not declare either method more reliable.'
+    )
+    _prompts['el'] += (
+        ' Η συμφωνία agents με κοινά δεδομένα δεν αποτελεί ανεξάρτητη ένδειξη '
+        'ή απόδειξη προγνωστικής ακρίβειας. Μη μετατρέπεις τη συμφωνία ή τις '
+        'βαθμολογίες ενεργοποίησης σε πιθανότητες. Διατήρησε χωριστά τα τροπικά '
+        'δυτικά και τα αστρικά Lahiri δεδομένα, χωρίς ισχυρισμό ανώτερης αξιοπιστίας.'
+    )
+
+
 def _top_and_bottom(area_scores, n=3):
     ranked = sorted(area_scores.items(), key=lambda kv: kv[1], reverse=True)
     peaks = ranked[:n]

@@ -74,6 +74,9 @@ def nakshatra_of(longitude):
 
 def planet_positions(jd_ut):
     """Return dict: planet -> {longitude, sign, sign_deg, nakshatra, pada, retrograde}"""
+    # Swiss Ephemeris mode is thread-local in common builds. Gunicorn uses
+    # request threads, so startup initialization alone is insufficient.
+    swe.set_sid_mode(swe.SIDM_LAHIRI)
     flags = EPHE_FLAGS | swe.FLG_SPEED
     out = {}
     for name, pid in PLANET_IDS.items():
@@ -102,6 +105,7 @@ def planet_positions(jd_ut):
 
 def ascendant(jd_ut, latitude, longitude):
     """Whole-sign ascendant: returns (asc_longitude, asc_sign)."""
+    swe.set_sid_mode(swe.SIDM_LAHIRI)
     cusps, ascmc = swe.houses_ex(jd_ut, latitude, longitude, b'W', EPHE_FLAGS)
     asc_lon = ascmc[0]
     sign, sign_deg = sign_of(asc_lon)
@@ -121,6 +125,9 @@ def build_natal_chart(year, month, day, hour, minute, utc_offset_hours, latitude
         p["house"] = whole_sign_house_of(p["sign"], asc_sign)
     moon_nak_idx = nakshatra_of(planets["Moon"]["longitude"])[2]
     return {
+        "calculation": {"zodiac": "sidereal", "ayanamsha": "Lahiri",
+                        "house_system": "whole_sign", "ephemeris": "Moshier",
+                        "node": "mean", "version": swe.version},
         "julian_day": jd,
         "ascendant": {"longitude": asc_lon, "sign": asc_sign, "sign_deg": asc_deg},
         "planets": planets,

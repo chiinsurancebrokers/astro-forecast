@@ -231,7 +231,7 @@ class CalibrationAgent:
             self.name,
             "EMPIRICAL_CALIBRATION",
             evidence,
-            ["No personal predictive calibration is claimed until enough dated real-world outcomes have been logged."],
+            ["No personal predictive calibration is claimed. Dated outcomes require prospective criteria, baseline comparison and independent evaluation; record count alone is insufficient."],
             [],
         )
 
@@ -252,6 +252,7 @@ class SynthesisAgent:
             }],
             [
                 "Vedic and Western/traditional rules must remain distinguishable in the final narrative.",
+                "Agreement between agents is not independent corroboration or evidence of predictive accuracy; never turn it into a confidence percentage.",
                 "Medical-astrology material must always be labelled historical/symbolic.",
             ],
             [],
@@ -344,6 +345,7 @@ class AstrologyOrchestrator:
             "natal_book_report": build_book_natal_report(chart, latitude, longitude),
             "lahiri_chart": chart,
             "guardrails": {
+                "agreement": "Shared calculations are dependent evidence; agreement is not a probability or a validation result.",
                 "medical_astrology": "historical/symbolic only; not diagnosis or medical advice",
                 "forecasting": "heuristic evidence is not validated prediction",
                 "systems": "Vedic, Western/traditional and medical-astrology rules stay source-tagged",
