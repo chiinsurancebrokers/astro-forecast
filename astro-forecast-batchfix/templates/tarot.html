@@ -6,7 +6,8 @@
 @media(max-width:700px){.grid{grid-template-columns:1fr}.cards{gap:10px}.tarot-card{min-height:205px;padding:16px 8px}.tarot-card .symbol{font-size:44px}.tarot-card .title{font-size:16px}.tarot-card .position{letter-spacing:0;font-size:11px}.slot>p{font-size:13px;min-height:65px}.panel{padding:20px}main{padding:20px 15px 50px}}
 @media(max-width:390px){.cards{grid-template-columns:1fr;max-width:255px;margin:auto}.slot>p{min-height:0}.tarot-card{min-height:300px}}
 @media(prefers-reduced-motion:no-preference){.tarot-card{transition:background .3s,transform .3s}.tarot-card:not([disabled]):hover{transform:translateY(-6px)}}
-</style></head><body><main>
+</style></head><body>
+{% include "app_menu.html" %}<main>
 <nav><a href="/platform">← {{ t.back }}</a><div aria-label="Language"><a href="/tarot?lang=el" {% if lang=='el' %}aria-current="page"{% endif %}>ΕΛ</a> · <a href="/tarot?lang=en" {% if lang=='en' %}aria-current="page"{% endif %}>EN</a></div></nav>
 <p class="eyebrow">{{ t.eyebrow }}</p><h1>{{ t.heading }}</h1><p class="intro">{{ t.intro }}</p>
 <section class="panel"><form id="tarot-form"><div class="grid"><label>{{ t.question }}<textarea id="question" maxlength="500" placeholder="{{ t.placeholder }}"></textarea></label><div><label>{{ t.spread }}<select id="spread"><option value="three">{{ t.three }}</option><option value="one">{{ t.one }}</option></select></label><label class="check"><input id="reversals" type="checkbox" checked>{{ t.reversals }}</label></div></div><p class="muted">{{ t.privacy }}</p><button id="draw" class="primary" type="submit">{{ t.draw }}</button></form></section>

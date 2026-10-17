@@ -41,3 +41,5 @@ jobs:
         run: node tests/methods_ui.test.cjs
       - name: Verify tarot reveal flow
         run: node tests/tarot_ui.test.cjs
+      - name: Verify shared workspace navigation
+        run: node tests/workspace_navigation.test.cjs
