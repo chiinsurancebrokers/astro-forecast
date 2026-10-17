@@ -98,3 +98,18 @@ rule carries a system tag such as `VEDIC`, `WESTERN_TRADITIONAL`, or
 - Questions use bounded POST JSON and are not stored by this application.
 - Original editorial card themes are symbolic, including Death and Justice;
   never turn them into literal medical, legal or financial claims.
+
+## Grounded natal reader
+
+- Reader text uses approved source-derived templates only, matched to computed
+  tropical longitudes, whole-sign houses, source-specific rulers and aspect orbs.
+- Recompute ephemeris geometry and canonical templates before accepting a
+  section. Bibliographic metadata does not authorize arbitrary prose.
+- Keep per-section source/fact trace internally; show sources at the end only.
+- Preserve source coverage gaps. Do not infer personal life events or merge
+  natal meaning with dated transits, Lahiri timing or historical esoteric work.
+- No LLM writes the audited reader edition. Natal/personality questions in Ask
+  route to this edition. Do not claim legacy forecasting endpoints are audited.
+- No live ChatGPT plugin server connection exists. Numerical comparison records
+  need explicit compatible input metadata; plugin prose is excluded even when
+  coordinates agree. Never present a sign-only profile as personal chart proof.

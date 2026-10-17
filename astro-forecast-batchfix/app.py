@@ -104,6 +104,34 @@ def methods_preview():
     return render_template('methods.html')
 
 
+@app.route('/natal-reading', methods=['GET','POST'])
+def detailed_natal_reading():
+    values=dict(DEFAULTS)
+    quality='recorded'
+    if request.method=='GET':
+        return render_template('natal_reading.html',values=values,quality=quality,report=None,error=None)
+    try:
+        required=('year','month','day','hour','minute','utc_offset','latitude','longitude')
+        if not all(key in request.form and request.form[key].strip() for key in required):
+            raise ValueError('Provide all birth fields; no date, time or place is inferred.')
+        values=_parse_birth(request.form)
+        datetime(*(values[k] for k in ('year','month','day','hour','minute')))
+        if not all(math.isfinite(values[k]) for k in ('utc_offset','latitude','longitude')):
+            raise ValueError('Coordinates and UTC offset must be finite.')
+        if not (-89<=values['latitude']<=89 and -180<=values['longitude']<=180 and -12<=values['utc_offset']<=14):
+            raise ValueError('Check birth coordinates and UTC offset.')
+        quality=request.form.get('time_quality','recorded')
+        if quality not in ('recorded','approximate'):
+            raise ValueError('Declare whether the birth time is recorded or approximate.')
+        chart=build_natal_chart(*(values[k] for k in ('year','month','day','hour','minute','utc_offset','latitude','longitude')))
+        report=build_book_natal_report(chart,values['latitude'],values['longitude'])
+    except (ValueError,OverflowError) as error:
+        return render_template('natal_reading.html',values=values,quality=quality,report=None,error=str(error)),400
+    response=app.make_response(render_template('natal_reading.html',values=values,quality=quality,report=report,error=None))
+    response.headers['Cache-Control']='no-store'
+    return response
+
+
 @app.route('/tarot')
 def tarot_page():
     from astro.tarot_i18n import UI
@@ -495,6 +523,11 @@ def api_agent_ask():
          "GeoAstrology Agent"],
     ).to_dict()
     b = _parse_birth(request.args)
+    if any(term in question.casefold() for term in ('natal','birth chart','γενέθλ','personality','character','προσωπικ')):
+        chart=build_natal_chart(*(b[k] for k in ('year','month','day','hour','minute','utc_offset','latitude','longitude')))
+        return jsonify({'grounded_natal':build_book_natal_report(chart,b['latitude'],b['longitude']),
+                        'question':question,'routing':routing,
+                        'answer_mode':'curated_natal_report_not_freeform_ai'})
     months = max(1, min(int(request.args.get("months", 24)), 120))
     start_str = request.args.get("start")
     start = datetime.strptime(start_str, "%Y-%m-%d") if start_str else datetime.now()

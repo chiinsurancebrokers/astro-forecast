@@ -134,6 +134,7 @@
       <div class="brand"><div class="brand-mark">✦</div><span>Astro Intelligence</span></div>
       <div class="eyebrow" style="padding:0 12px 12px">Workspace</div>
       <nav aria-label="Main navigation">
+        <a href="/natal-reading"><span>☉</span>Detailed natal report</a>
         <a href="/tarot"><span>✦</span>Tarot Reading · EL / EN</a>
         <a href="/methods"><span>◈</span>Western &amp; Vedic · observation journal</a>
         <a class="active" href="/platform"><span>◉</span>Overview</a>
@@ -183,6 +184,7 @@
           <div class="timing-foot"><span class="chip">Transits</span><span class="chip">Planetary periods</span><span class="chip">Source-aware</span><button class="primary" onclick="runAgent('/api/agents/life-periods')">Open life chapters ↗</button></div>
         </article>
         <div class="section-head" id="explore"><h2>Explore your chart</h2><a href="#chart">Set up birth details&nbsp; ↗</a></div>
+        <article class="card feature"><div class="icon">☉</div><h3>Your detailed natal report</h3><p>A source-grounded synthesis, nine planetary readings and all twelve houses, with references at the end.</p><a href="/natal-reading">Prepare a report for your astrologer ↗</a></article>
         <article class="card feature"><div class="icon">✦</div><h3>Tarot Reading</h3><p>Reveal one or three cards and explore their symbolism in Greek or English.</p><a href="/tarot">Open Tarot Reading ↗</a></article>
         <article class="card feature"><div class="icon">◈</div><h3>Western &amp; Vedic</h3><p>Compare the calculation systems and record expectations before their observation window.</p><a href="/methods">Compare methods &amp; open journal ↗</a></article>
         <article class="card feature"><div class="icon">☉</div><h3>Natal intelligence</h3><p>Planet placements, dignity, aspects and house themes.</p><button onclick="runAgent('/api/natal')">Build natal chart&nbsp; ↗</button></article>
@@ -302,6 +304,7 @@
     }
     function renderBookReport(report, specialist='') {
       if(!report)return '';
+      if(report.reader_edition)return renderGroundedNatal(report);
       if(!report.reading)return section('Reading unavailable','<p>The narrative could not be prepared. Please try again.</p>');
       const narrative=report.reading.sections.map(item=>section(item.title,item.paragraphs.map(p=>'<p>'+esc(p)+'</p>').join(''))).join('');
       const planetary=(report.reading.planet_sections||[]).map(item=>section(item.title,item.paragraphs.map(p=>'<p>'+esc(p)+'</p>').join(''))).join('');
@@ -312,6 +315,19 @@
         (houses?section('Your twelve houses','<p>Each house describes an area of life. Open a house to see its planets and ruling connections.</p>'+houses):section('Houses require a birth location','<p>Planetary sign readings are available, but houses and their rulers need a birth location and a reliable birth time.</p>'))+
         '<details class="report-section"><summary>View your chart and calculation details</summary>'+(report.chart?renderNatal(report.chart):'')+'<p>'+esc(report.basis_note)+'</p></details>'+
         ((report.reading.esoteric_sections||[]).length?'<details class="report-section"><summary>Alan Leo · esoteric reflection</summary>'+report.reading.esoteric_sections.map(item=>section(item.title,item.paragraphs.map(p=>'<p>'+esc(p)+'</p>').join(''))).join('')+'</details>':'')+specialist+(report.specialists?renderHistorical(report.specialists):'')+section('Bibliography and interpretation notes','<ol>'+references+'</ol><p class="report-note">'+esc(report.reading.method)+'</p><p class="report-note">'+esc(report.reading.delineation_note||'')+'</p><details><summary>How the books are used</summary><p>'+esc(report.coverage)+'</p><p>'+esc(report.other_books)+'</p></details>')+(report.specialists?renderHistoricalBibliography(report.specialists):'');
+    }
+    function renderGroundedNatal(report) {
+      const edition=report.reader_edition;
+      const paragraphs=items=>items.map(item=>section(item.title,item.paragraphs.map(p=>'<p>'+esc(p)+'</p>').join(''))).join('');
+      const houses=edition.house_sections.map(item=>'<details class="report-section"><summary>'+esc(item.title)+'</summary>'+item.paragraphs.map(p=>'<p>'+esc(p)+'</p>').join('')+'</details>').join('');
+      const refs=edition.references.map(ref=>'<li>'+esc(ref.author)+' · <em>'+esc(ref.title)+'</em> · '+esc(ref.chapter)+' · printed p. '+esc(ref.printed_page)+' / PDF p. '+esc(ref.pdf_page)+'</li>').join('');
+      return section('Your detailed natal reading','<p>Western tropical · Whole-sign houses. Calculated placements matched to curated interpretation material.</p>')+
+        paragraphs(edition.sections)+section('Your planets: character and expression',paragraphs(edition.planet_sections))+
+        section('Your twelve houses',houses)+
+        section('Questions for your astrologer','<ul><li>Which chart factors deserve more weight in the overall synthesis?</li><li>How sensitive are the angles and houses to uncertainty in my recorded birth time?</li><li>Which themes fit my experience, and which do not?</li><li>What dated transit analysis would be needed to discuss a particular period?</li></ul>')+
+        '<details class="report-section"><summary>Calculated chart and method</summary>'+renderNatal(report.chart)+'<p>'+esc(edition.method)+'</p></details>'+
+        section('Coverage and limitations',list(edition.coverage.gaps)+'<p>External chart verification has not been performed for this reading. No external plugin prose is used.</p>')+
+        section('Sources','<ol>'+refs+'</ol>');
     }
     function renderCareerPlain(agent) {
       const evidence=agent.evidence||[], placements=evidence.filter(i=>i.type==='career_house_placement');
@@ -355,6 +371,7 @@
       return section(title,list(rows)+note);
     }
     function renderReading(body) {
+      if(body.grounded_natal)return renderBookReport(body.grounded_natal);
       if(body.personal_journey)return renderCalculatedJourney(body.personal_journey);
       if(body.zodiac_profile && !body.reading && !body.natal_book_report)return renderZodiacProfile(body.zodiac_profile);
       if(body.life_report)return renderLifeReport(body.life_report);

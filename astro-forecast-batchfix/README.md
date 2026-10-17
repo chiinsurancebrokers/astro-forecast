@@ -253,6 +253,43 @@ runtime.txt                    Python version pin
   starting point to calibrate against logged real-world outcomes.
 # Separate methods and observation journal
 
+## Audited natal reader edition
+
+`/natal-reading` provides a detailed, printable natal report. Enter birth details
+and declare recorded/approximate birth time; POST avoids birth data in the URL.
+The browser print dialog can save the report as PDF. No report is stored by the
+application. The current reader narrative is English.
+
+`build_book_natal_report` now adds `reader_edition`, also used by the platform's
+natal report. It keeps the continuous narrative free of author names and places
+only actually used references at the end. Internal audit records retain each
+section's facts, rule context and source/page metadata. The original raw source
+structures are retained for compatibility and inspection.
+
+Before publication, tropical longitudes and the Ascendant are recomputed from
+the birth Julian day and coordinates; sign/degree/whole-sign-house consistency
+is checked. Aspect geometry is independently recomputed. Each narrative,
+planetary or house section must exactly match the approved source-derived
+template for those facts; correct citations alone cannot authorize new prose.
+Unknown source metadata, wrong aspect orbs, fabricated paragraphs and altered
+house/ruler evidence are omitted or rejected. This is structural grounding, not
+an automatic verification of the original book scans or evidence that astrology
+is scientifically valid. Nine sourced planet sections and all twelve houses are
+covered; Pluto and unsupported aspect combinations are explicitly left out.
+Life-history events are never inferred, and dated transit work stays separate.
+Explicit natal/personality questions in Ask route to this reader edition rather
+than a free-form LLM answer. Other forecast endpoints retain their existing
+experimental, uncalibrated synthesis behavior.
+
+ChatGPT plugins are not automatically deployable server APIs. No live connection
+is claimed. `check_plugin_records` is an internal numerical comparison contract:
+it requires explicit UTC birth instant, coordinates, tropical zodiac, whole-sign
+convention and finite numerical longitudes. Sign-only or mismatched records are
+excluded. Even a compatible record is a numerical cross-check only; untrusted
+plugin prose is never added to the report. There is no public snapshot upload or
+an invented API endpoint. Provider credentials/official server integration and
+privacy authorization would be required before enabling live provider calls.
+
 ## Native Tarot Reading
 
 `/tarot` (Greek by default) and `/tarot?lang=en` provide an independent tarot

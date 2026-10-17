@@ -42,6 +42,10 @@ assert(detailedHtml.includes('<summary>House 9 · Study</summary>'));
 assert(detailedHtml.indexOf('A considered reading.') < detailedHtml.indexOf('Bibliography and interpretation notes'));
 assert(detailedHtml.includes('&lt;script&gt;'));assert(!detailedHtml.includes('<script>'));
 
+// The audited edition replaces legacy author-named narrative and timing content.
+sandbox.audited={chart,reader_edition:{sections:[{title:'Audited narrative',paragraphs:['An approved interpretation.']}],planet_sections:[],house_sections:[],references:[{author:'Source Author',title:'Book',chapter:'Chapter',printed_page:1,pdf_page:2}],coverage:{gaps:['Selected coverage only.']},method:'Curated templates'},reading:{sections:[{title:'Legacy',paragraphs:['Legacy author text']}],references:[]}};
+const auditedHtml=evaluate('renderBookReport(audited)');assert(auditedHtml.includes('An approved interpretation.'));assert(!auditedHtml.includes('Legacy author text'));assert(auditedHtml.indexOf('Source Author')>auditedHtml.indexOf('<h3>Sources</h3>')||auditedHtml.indexOf('Source Author')>auditedHtml.indexOf('Sources'));assert(evaluate('renderReading({grounded_natal:audited})').includes('Audited narrative'));
+
 sandbox.life={title:'Life chapters',intro:'A dated reading.',current_chapters:[],next_transition:null,yearly:[{year:2027,topics:['Work'],preparation:['Review commitments.'],transitions:[]}],vedic:{note:'Separate Lahiri calendar',major_lord:'Saturn',sub_lord:'Venus',major_end:'2030-01-01',sub_end:'2027-01-01',lifetime:[],subperiods:[]},method:'Daily sampling',limitations:'Not a verified event forecast.',references:[{author:'Raphael',title:'Guide',chapter:'Transits',printed_page:122,pdf_page:126}]};
 const lifeHtml=evaluate('renderReading({life_report:life})');
 assert(lifeHtml.includes('Your year-by-year outlook'));
