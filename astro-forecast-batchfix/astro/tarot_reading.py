@@ -29,20 +29,20 @@ KINDS = {'one': ['focus'], 'three': ['past', 'present', 'answer'],
          'four': ['past', 'present', 'future', 'answer']}
 
 FRAME = {
- 'en': {'focus': 'Focus for reflection — around {t}:',
-        'past': 'Past — what has shaped {t}:',
-        'present': 'Present — where you stand with {t}:',
-        'future': 'Future tendency — the direction that shows for {t} if things continue as they are:',
-        'answer': 'Answer — the stance the card suggests for {t}:'},
- 'el': {'focus': 'Θέμα για στοχασμό — γύρω από {t}:',
-        'past': 'Παρελθόν — τι έχει διαμορφώσει {t}:',
-        'present': 'Παρόν — πού βρίσκεσαι σε σχέση με {t}:',
-        'future': 'Μέλλον (τάση) — η κατεύθυνση που διαφαίνεται για {t}, αν τα πράγματα συνεχίσουν όπως τώρα:',
-        'answer': 'Απάντηση — η στάση που προτείνει η κάρτα για {t}:'},
+ 'en': {'focus': 'A theme to reflect on around {t}:',
+        'past': 'What has shaped {t}:',
+        'present': 'Where you stand with {t}:',
+        'future': 'The direction that shows for {t} if things continue as they are:',
+        'answer': 'The stance the card suggests for {t}:'},
+ 'el': {'focus': 'Ένα θέμα για στοχασμό γύρω από {t}:',
+        'past': 'Τι έχει διαμορφώσει {t}:',
+        'present': 'Πού βρίσκεσαι σε σχέση με {t}:',
+        'future': 'Η κατεύθυνση που διαφαίνεται για {t}, αν τα πράγματα συνεχίσουν όπως τώρα:',
+        'answer': 'Η στάση που προτείνει η κάρτα για {t}:'},
 }
 ORIENT = {'en': {'upright': 'upright', 'reversed': 'reversed'},
           'el': {'upright': 'όρθια', 'reversed': 'ανάστροφη'}}
-CARD_LINE = {'en': '{name} ({o}) — theme: {theme}.', 'el': '{name} ({o}) — θέμα: {theme}.'}
+CARD_LINE = {'en': '{name} — theme: {theme}.', 'el': '{name} — θέμα: {theme}.'}
 ORIENT_NOTE = {
  'en': {'upright': 'Upright, the theme is expressed openly and can be worked with directly.',
         'reversed': 'Reversed, the theme asks to be reconsidered, or is only partly expressed so far.'},
@@ -163,8 +163,8 @@ REVERSED_NOTE = {
         'mixed': '{n} από {total} κάρτες είναι ανάστροφες: κάποια θέματα ρέουν ανοιχτά και άλλα ζητούν δεύτερη ματιά.'},
 }
 ARC = {'en': 'The sequence reads: ', 'el': 'Η αφήγηση διαβάζεται έτσι: '}
-QUESTION = {'en': 'On your question, “{q}”: ', 'el': 'Για το ερώτημά σου, «{q}»: '}
-TOPIC_ONLY = {'en': 'On the theme of {t}: ', 'el': 'Στο θέμα «{t}»: '}
+QUESTION = {'en': 'Your question: “{q}”.', 'el': 'Το ερώτημά σου: «{q}».'}
+TOPIC_ONLY = {'en': 'Theme: {t}.', 'el': 'Θέμα: «{t}».'}
 FUTURE_NOTE = {
  'en': 'The future position is read as a tendency if you continue as you are, not as a fixed outcome — your choices can change it.',
  'el': 'Η θέση του μέλλοντος διαβάζεται ως τάση αν συνεχίσεις όπως τώρα, όχι ως δεδομένο αποτέλεσμα — οι επιλογές σου μπορούν να την αλλάξουν.'}
@@ -181,7 +181,7 @@ METHOD = {
 }
 
 
-def interpret(card, kind, topic, lang, orientation, theme):
+def interpret(card, kind, topic, lang, orientation, theme, major_lens=True):
     """Return (interpretation, reflection) for one drawn card."""
     t = TOPIC_PHRASE[lang][topic]
     o = ORIENT[lang][orientation]
@@ -190,8 +190,13 @@ def interpret(card, kind, topic, lang, orientation, theme):
     else:
         lens = SUIT_LENS[lang][card['id'].split('-')[0]][topic]
     parts = [FRAME[lang][kind].format(t=t),
-             CARD_LINE[lang].format(name=card['name_' + lang], o=o, theme=theme),
-             lens, ORIENT_NOTE[lang][orientation]]
+             CARD_LINE[lang].format(name=card['name_' + lang], o=o, theme=theme)]
+    # The Major Arcana sentence is generic; say it once per reading, not per card.
+    if card['arcana'] == 'minor' or major_lens:
+        parts.append(lens)
+    # An upright note is filler; only a reversal changes how the card is read.
+    if orientation == 'reversed':
+        parts.append(ORIENT_NOTE[lang][orientation])
     return ' '.join(parts), REFLECTION[lang][kind].format(t=t)
 
 
@@ -212,10 +217,10 @@ def synthesis(cards, kinds, topic, question, lang):
         key = 'none' if rev == 0 else 'most' if rev * 2 > len(cards) else 'mixed'
         out.append(REVERSED_NOTE[lang][key].format(n=rev, total=len(cards)))
         suits = [c['id'].split('-')[0] for c in cards if c['arcana'] == 'minor']
-        for suit in sorted(set(suits)):
-            if suits.count(suit) >= 2 and suits.count(suit) * 2 > len(suits) - 1:
-                out.append(SUIT_DOMINANT[lang][suit])
-                break
+        ranked = sorted(((suits.count(x), x) for x in set(suits)), reverse=True)
+        # Dominant only if one suit leads outright with at least two cards (no ties).
+        if ranked and ranked[0][0] >= 2 and (len(ranked) == 1 or ranked[0][0] > ranked[1][0]):
+            out.append(SUIT_DOMINANT[lang][ranked[0][1]])
     if 'future' in kinds:
         out.append(FUTURE_NOTE[lang])
     if 'answer' in kinds:
