@@ -113,3 +113,14 @@ rule carries a system tag such as `VEDIC`, `WESTERN_TRADITIONAL`, or
 - No live ChatGPT plugin server connection exists. Numerical comparison records
   need explicit compatible input metadata; plugin prose is excluded even when
   coordinates agree. Never present a sign-only profile as personal chart proof.
+
+## Daily horoscope
+
+- `/horoscope` and `GET /api/horoscope/daily?sign=&lang=&date=` build a per-Sun-sign
+  daily reading from the calculated Western tropical sky at 12:00 UT: Moon sign and
+  phase, closest Moon aspects, Mercury retrograde and solar-house placement.
+- Western only. Do not blend Vedic/Lahiri positions into this page.
+- Templated, reflective wording; no LLM, no stored data, no outcome predictions.
+- The page's "card of the day" is deliberately seeded by date so every visitor sees
+  the same card for a given day. This is the only place the tarot deck is not drawn
+  with SystemRandom; `/tarot` itself is unchanged.
