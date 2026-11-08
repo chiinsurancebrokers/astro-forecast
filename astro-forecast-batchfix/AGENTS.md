@@ -133,3 +133,15 @@ rule carries a system tag such as `VEDIC`, `WESTERN_TRADITIONAL`, or
   Moon's solar house, sign and phase, plus Venus/Mars placements). Do not add star
   ratings or "love/money score" numbers: they would be heuristic scores presented as
   predictions. Do not copy text from other horoscope sites.
+
+## Heindel source (Simplified Scientific Astrology, 1919)
+
+- Used as a paraphrased basis for sign qualities (Cardinal/Fixed/Common, plus Air and Water notes) and
+  house topics, in the daily horoscope (`astro/daily_texts.py`) and the natal "Max Heindel · esoteric
+  reflection" block (`heindel_sections` in `astro/additional_books.py`). Printed page + 8 = PDF page.
+- Esoteric/Rosicrucian perspective, tagged `ESOTERIC_HISTORICAL`; keep it separate from the Western
+  delineation. Write nothing for Fire/Earth: the book gives no comparable note.
+- The other upload ("The New Horoscope of Missions") is a missions book, not astrology; do not cite it.
+- Verified: ascendant for his Chicago 2 Aug 1909 example matches an independent Swiss Ephemeris
+  Placidus calculation (his table-based figures differ by 8'-16').
+
