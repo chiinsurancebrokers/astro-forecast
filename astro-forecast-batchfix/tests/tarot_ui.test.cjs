@@ -1,7 +1,7 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),path=require('node:path');
 const nodes={},t={reveal:'Reveal',major:'Major',minor:'Minor',upright:'Upright',reversed:'Reversed',reading:'Reading',general:'General',reflection:'Reflect',together:'Together',next:'Next',exercise:'Exercise',method:'Method',download:'Download',ready:'Ready',drawing:'Drawing',drawn:'Drawn',draw:'Draw',error:'Error'};
 function node(s){return nodes[s]||={value:'',checked:true,hidden:false,disabled:false,textContent:'',innerHTML:'',handlers:{},addEventListener(event,fn){this.handlers[event]=fn;}};}
-node('#tarot-config').textContent=JSON.stringify({lang:'en',t});node('#spread').value='three';
+node('#tarot-config').textContent=JSON.stringify({lang:'en',t});node('#spread').value='three';node('#topic').value='love';
 const sandbox={document:{querySelector:node},Set,console,URLSearchParams};
 vm.createContext(sandbox);vm.runInContext(fs.readFileSync(path.join(__dirname,'../static/tarot.js'),'utf8'),sandbox);
 const evaluate=code=>vm.runInContext(code,sandbox);
