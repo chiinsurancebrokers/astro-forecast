@@ -174,6 +174,31 @@ def api_tarot_draw():
     return response
 
 
+@app.route('/horoscope')
+def horoscope_page():
+    from astro.horoscope_i18n import UI
+    from astro.daily_horoscope import sign_list
+    lang = request.args.get('lang', 'el')
+    lang = lang if lang in UI else 'el'
+    response = app.make_response(render_template('horoscope.html', lang=lang, t=UI[lang],
+                                                 signs=sign_list(lang)))
+    response.headers['Cache-Control'] = 'no-store'
+    return response
+
+
+@app.route('/api/horoscope/daily')
+def api_horoscope_daily():
+    from astro.daily_horoscope import build_daily, parse_date
+    lang = request.args.get('lang', 'el')
+    try:
+        result = build_daily(request.args.get('sign', ''), parse_date(request.args.get('date')), lang)
+    except ValueError as error:
+        return jsonify({'error': str(error)}), 400
+    response = jsonify(result)
+    response.headers['Cache-Control'] = 'no-store'
+    return response
+
+
 @app.route('/api/agents/methods')
 def api_methods():
     from astro.methods import compare_methods

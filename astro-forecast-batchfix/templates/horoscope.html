@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="{{ lang }}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{ t.title }}</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,-apple-system,sans-serif;background:#080e20;color:#edf0fa}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 75% 0%,#30204c77,transparent 50%),#080e20}main{max-width:1000px;margin:auto;padding:28px 22px 80px}nav{display:flex;justify-content:space-between;align-items:center;gap:20px}a{color:#d3c1ff}a[aria-current]{color:#fff;text-decoration-thickness:3px}h1{font-size:clamp(30px,5vw,50px);line-height:1.18;max-width:800px;font-weight:580;letter-spacing:-1.2px}h2{font-size:24px;margin:0 0 6px}h3{font-size:16px;margin:26px 0 4px;color:#d9bb80;letter-spacing:.5px}p{line-height:1.7}.eyebrow{color:#d9bb80;text-transform:uppercase;letter-spacing:3px;font-size:12px;margin-top:50px}.intro{max-width:730px;color:#b8c2d9;font-size:18px}.panel{background:#111a2dcc;border:1px solid #35405b;border-radius:20px;padding:26px;margin:24px 0}.signs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin-top:14px}.sign{font:inherit;color:inherit;background:#111d35;border:1px solid #54607b;border-radius:14px;padding:12px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px}.sign .glyph{font-size:28px;color:#e2c694;line-height:1.1}.sign .label{font-size:13px}.sign[aria-pressed=true]{background:#8d6ac5;border-color:#b293df}.sign:focus-visible,a:focus-visible{outline:3px solid #e0be7d;outline-offset:4px}.muted,small{color:#aab6ce;font-size:14px}.date{color:#c7b28a;font-size:14px;margin:0}.card{display:flex;gap:22px;align-items:center;flex-wrap:wrap;margin-top:12px}.tarot-card{width:150px;aspect-ratio:2/3;display:flex;flex-direction:column;align-items:center;justify-content:space-around;text-align:center;border:1px solid #a88a55;border-radius:16px;padding:16px 10px;background:radial-gradient(circle at 50% 40%,#61505255,#101b32 65%);box-shadow:0 10px 30px #0005;flex:none}.tarot-card .symbol{font-family:Georgia,serif;font-size:56px;color:#e2c694;line-height:1.2}.tarot-card.reversed .symbol{transform:rotate(180deg)}.tarot-card .title{font-size:15px}.card-text{flex:1 1 280px}.reflection{border-left:2px solid #d0ad72;padding-left:16px;color:#d8c6f0}.error{color:#ffbdbd}[hidden]{display:none!important}#status{min-height:26px}details{margin-top:24px}summary{cursor:pointer;color:#d8c5ff}.footer{margin-top:30px;border-top:1px solid #293650;padding-top:18px}
+@media(max-width:700px){.signs{grid-template-columns:repeat(4,minmax(0,1fr))}.panel{padding:20px}main{padding:20px 15px 50px}}
+@media(max-width:420px){.signs{grid-template-columns:repeat(3,minmax(0,1fr))}}
+</style></head><body>
+{% include "app_menu.html" %}<main>
+<nav><a href="/platform">← {{ t.back }}</a><div aria-label="Language"><a href="/horoscope?lang=el" {% if lang=='el' %}aria-current="page"{% endif %}>ΕΛ</a> · <a href="/horoscope?lang=en" {% if lang=='en' %}aria-current="page"{% endif %}>EN</a></div></nav>
+<p class="eyebrow">{{ t.eyebrow }}</p><h1>{{ t.heading }}</h1><p class="intro">{{ t.intro }}</p>
+<section class="panel"><h2 id="choose-label">{{ t.choose }}</h2>
+<div class="signs" role="group" aria-labelledby="choose-label" id="signs">
+{% for s in signs %}<button type="button" class="sign" data-sign="{{ s.id }}" aria-pressed="false"><span class="glyph" aria-hidden="true">{{ s.glyph }}</span><span class="label">{{ s.name }}</span></button>{% endfor %}
+</div></section>
+<p id="status" role="status" aria-live="polite">{{ t.prompt_choose }}</p>
+<section id="horoscope" class="panel" hidden aria-live="polite"></section>
+<section id="card" class="panel" hidden aria-live="polite"></section>
+<p class="muted footer">{{ t.note }}</p>
+</main><script id="horoscope-config" type="application/json">{{ {'lang':lang,'t':t,'signs':signs}|tojson }}</script><script src="{{ url_for('static',filename='horoscope.js') }}"></script></body></html>
