@@ -66,6 +66,18 @@ def _parse_birth(args):
     return d
 
 
+def _int_arg(args, name, default):
+    """Read an integer query param; fall back to the default when it is
+    missing, empty (e.g. ``?months=``) or not a valid integer."""
+    raw = args.get(name)
+    if raw is None or str(raw).strip() == "":
+        return default
+    try:
+        return int(raw)
+    except (TypeError, ValueError):
+        return default
+
+
 def _parse_lang(args):
     lang = args.get("lang", "en")
     return lang if lang in SUPPORTED_LANGS else "en"
@@ -243,7 +255,7 @@ def api_dasha():
 @app.route("/api/forecast")
 def api_forecast():
     b = _parse_birth(request.args)
-    months = int(request.args.get("months", 60))
+    months = _int_arg(request.args, "months", 60)
     start_str = request.args.get("start")
     start = datetime.strptime(start_str, "%Y-%m-%d") if start_str else datetime.now()
 
@@ -266,7 +278,7 @@ def api_forecast():
 def api_report_pdf():
     b = _parse_birth(request.args)
     lang = _parse_lang(request.args)
-    months = int(request.args.get("months", 60))
+    months = _int_arg(request.args, "months", 60)
     start_str = request.args.get("start")
     start = datetime.strptime(start_str, "%Y-%m-%d") if start_str else datetime.now()
 
@@ -301,7 +313,7 @@ def api_analysis():
     """
     b = _parse_birth(request.args)
     lang = _parse_lang(request.args)
-    months = int(request.args.get("months", 24))
+    months = _int_arg(request.args, "months", 24)
     start_str = request.args.get("start")
     start = datetime.strptime(start_str, "%Y-%m-%d") if start_str else datetime.now()
     question = request.args.get("question", "").strip()
@@ -339,7 +351,7 @@ def api_narrative():
     b = _parse_birth(request.args)
     lang = _parse_lang(request.args)
     provider = _resolve_provider(request.args)
-    months = int(request.args.get("months", 24))
+    months = _int_arg(request.args, "months", 24)
     start_str = request.args.get("start")
     start = datetime.strptime(start_str, "%Y-%m-%d") if start_str else datetime.now()
 
@@ -360,7 +372,7 @@ def api_narrative_pdf():
     b = _parse_birth(request.args)
     lang = _parse_lang(request.args)
     provider = _resolve_provider(request.args)
-    months = int(request.args.get("months", 24))
+    months = _int_arg(request.args, "months", 24)
     start_str = request.args.get("start")
     start = datetime.strptime(start_str, "%Y-%m-%d") if start_str else datetime.now()
 
@@ -407,7 +419,7 @@ def api_knowledge_search():
     topics = [x.strip() for x in request.args.get("topics", "").split(",") if x.strip()]
     systems = [x.strip() for x in request.args.get("systems", "").split(",") if x.strip()]
     source_ids = [x.strip() for x in request.args.get("sources", "").split(",") if x.strip()]
-    limit = max(1, min(int(request.args.get("limit", 8)), 50))
+    limit = max(1, min(_int_arg(request.args, "limit", 8), 50))
 
     hits = library.search(
         query=query,
@@ -428,7 +440,7 @@ def api_knowledge_search():
 def api_agents_analyze():
     """Run the v2 specialist-agent pipeline and return inspectable evidence."""
     b = _parse_birth(request.args)
-    months = max(1, min(int(request.args.get("months", 24)), 120))
+    months = max(1, min(_int_arg(request.args, "months", 24), 120))
     start_str = request.args.get("start")
     start = datetime.strptime(start_str, "%Y-%m-%d") if start_str else datetime.now()
     question = request.args.get("question", "").strip()
@@ -528,7 +540,7 @@ def api_agent_ask():
         return jsonify({'grounded_natal':build_book_natal_report(chart,b['latitude'],b['longitude']),
                         'question':question,'routing':routing,
                         'answer_mode':'curated_natal_report_not_freeform_ai'})
-    months = max(1, min(int(request.args.get("months", 24)), 120))
+    months = max(1, min(_int_arg(request.args, "months", 24), 120))
     start_str = request.args.get("start")
     start = datetime.strptime(start_str, "%Y-%m-%d") if start_str else datetime.now()
     data = _compute_all(b, months, start)
@@ -544,7 +556,7 @@ def api_agent_ask():
 @app.route("/api/agents/timing")
 def api_agent_timing():
     b = _parse_birth(request.args)
-    months = max(1, min(int(request.args.get("months", 24)), 120))
+    months = max(1, min(_int_arg(request.args, "months", 24), 120))
     start_str = request.args.get("start")
     start = datetime.strptime(start_str, "%Y-%m-%d") if start_str else datetime.now()
     data = _compute_all(b, months, start)
