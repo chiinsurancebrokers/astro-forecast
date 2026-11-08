@@ -136,48 +136,39 @@ KIND_MEANING = {
         'answer': 'η στάση ή η κατεύθυνση που προτείνει η κάρτα για το ερώτημά σου. Δεν είναι απάντηση ναι/όχι.'},
 }
 
-SUIT_DOMINANT = {
- 'en': {'wands': 'Wands dominate: this is largely a matter of energy, action and initiative.',
-        'cups': 'Cups dominate: feelings and relationships are at the heart of this.',
-        'swords': 'Swords dominate: thinking, communication and decisions are central here.',
-        'pentacles': 'Pentacles dominate: practical matters, routines and resources are central here.'},
- 'el': {'wands': 'Κυριαρχούν οι Ράβδοι: το θέμα αφορά κυρίως ενέργεια, δράση και πρωτοβουλία.',
-        'cups': 'Κυριαρχούν τα Κύπελλα: συναισθήματα και σχέσεις βρίσκονται στον πυρήνα.',
-        'swords': 'Κυριαρχούν τα Ξίφη: σκέψη, επικοινωνία και αποφάσεις είναι κεντρικά.',
-        'pentacles': 'Κυριαρχούν τα Πεντάκτινα: πρακτικά ζητήματα, ρουτίνες και πόροι είναι κεντρικά.'},
-}
-MAJORS_NOTE = {
- 'en': {'many': 'With {n} Major Arcana cards, this matter seems to carry real weight and a wider meaning for you.',
-        'some': 'One or two Major Arcana cards mark a meaningful thread among otherwise everyday matters.',
-        'none': 'With no Major Arcana cards, this reads as a matter of everyday, practical choices rather than a turning point.'},
- 'el': {'many': 'Με {n} Μεγάλες Αρκάνες, το θέμα φαίνεται να έχει πραγματική βαρύτητα και ευρύτερο νόημα για σένα.',
-        'some': 'Μία ή δύο Μεγάλες Αρκάνες σημαδεύουν μια ουσιαστική κλωστή μέσα σε κατά τα άλλα καθημερινά ζητήματα.',
-        'none': 'Χωρίς Μεγάλες Αρκάνες, η ανάγνωση δείχνει καθημερινές, πρακτικές επιλογές και όχι σημείο καμπής.'},
-}
-REVERSED_NOTE = {
- 'en': {'none': 'All cards are upright: the themes are expressed openly and can be worked with directly.',
-        'most': 'Most cards are reversed: the spread leans toward reviewing and reconsidering before acting.',
-        'mixed': '{n} of {total} cards are reversed: some themes flow openly while others ask for a second look.'},
- 'el': {'none': 'Όλες οι κάρτες είναι όρθιες: τα θέματα εκφράζονται ανοιχτά και μπορείς να δουλέψεις μαζί τους άμεσα.',
-        'most': 'Οι περισσότερες κάρτες είναι ανάστροφες: η διάταξη γέρνει προς την επανεξέταση πριν από τη δράση.',
-        'mixed': '{n} από {total} κάρτες είναι ανάστροφες: κάποια θέματα ρέουν ανοιχτά και άλλα ζητούν δεύτερη ματιά.'},
-}
-ARC = {'en': 'The sequence reads: ', 'el': 'Η αφήγηση διαβάζεται έτσι: '}
 QUESTION = {'en': 'Your question: “{q}”.', 'el': 'Το ερώτημά σου: «{q}».'}
 TOPIC_ONLY = {'en': 'Theme: {t}.', 'el': 'Θέμα: «{t}».'}
+# One plain sentence per position; the card keyword sits in quotes so any phrase reads correctly.
+STORY = {
+ 'en': {'focus': 'The theme to reflect on is “{k}”.',
+        'past': 'Your past with this matter carries the mark of “{k}”.',
+        'present': 'Right now the centre of gravity is “{k}”.',
+        'future': 'If you continue as you are, the tendency that shows is “{k}”.',
+        'answer': 'The answer card does not say yes or no; it suggests a stance: “{k}”.'},
+ 'el': {'focus': 'Το θέμα για στοχασμό είναι «{k}».',
+        'past': 'Το παρελθόν σου σε αυτό το θέμα φέρει τη σφραγίδα του «{k}».',
+        'present': 'Αυτή τη στιγμή το κέντρο βάρους είναι «{k}».',
+        'future': 'Αν συνεχίσεις όπως τώρα, διαφαίνεται η τάση «{k}».',
+        'answer': 'Η κάρτα-απάντηση δεν λέει ναι ή όχι· προτείνει μια στάση: «{k}».'},
+}
+MOVEMENT = {
+ 'en': {'smooth': 'The journey is steady: the themes are expressed openly from start to finish.',
+        'opening': 'Something that has been blocked or unclear so far looks set to open up toward the end.',
+        'closing': 'What flows today may need a second look later, so the step you choose deserves care.',
+        'mixed': 'The journey has ups and downs: some themes are open, others ask for a second look.'},
+ 'el': {'smooth': 'Η διαδρομή είναι ομαλή: τα θέματα εκφράζονται ανοιχτά από την αρχή ως το τέλος.',
+        'opening': 'Κάτι που ως τώρα ήταν μπλοκαρισμένο ή ασαφές φαίνεται να ανοίγει προς το τέλος.',
+        'closing': 'Ό,τι ρέει σήμερα ίσως χρειαστεί δεύτερη ματιά αργότερα· γι’ αυτό το βήμα που θα επιλέξεις αξίζει προσοχή.',
+        'mixed': 'Η διαδρομή έχει εναλλαγές: κάποια θέματα είναι ανοιχτά και άλλα ζητούν δεύτερη ματιά.'},
+}
+PRACTICE = {'en': 'In practice: ', 'el': 'Στην πράξη: '}
 FUTURE_NOTE = {
- 'en': 'The future position is read as a tendency if you continue as you are, not as a fixed outcome — your choices can change it.',
- 'el': 'Η θέση του μέλλοντος διαβάζεται ως τάση αν συνεχίσεις όπως τώρα, όχι ως δεδομένο αποτέλεσμα — οι επιλογές σου μπορούν να την αλλάξουν.'}
-ANSWER_NOTE = {
- 'en': 'The answer card is {name} ({o}). It does not say yes or no; it suggests a stance to take: {theme}.',
- 'el': 'Η κάρτα-απάντηση είναι {name} ({o}). Δεν λέει ναι ή όχι· προτείνει μια στάση: {theme}.'}
-CLOSE = {
- 'en': 'Read the cards as questions, not as a description of your fate. Keep what fits and leave the rest.',
- 'el': 'Διάβασε τις κάρτες ως ερωτήματα, όχι ως περιγραφή του πεπρωμένου σου. Κράτα ό,τι ταιριάζει και άφησε τα υπόλοιπα.'}
+ 'en': 'A tendency is not a fixed outcome — your choices can change it.',
+ 'el': 'Μια τάση δεν είναι δεδομένο αποτέλεσμα — οι επιλογές σου μπορούν να την αλλάξουν.'}
 
 METHOD = {
- 'en': 'Random draw from 78 cards, without repeats. Each card is read by its position in the spread, the topic you chose, its suit (or Major Arcana status) and whether it is upright or reversed. The overall reading is computed from your actual draw: number of Major Arcana, reversals and dominant suit. All text is original editorial writing; no AI is used, nothing is predicted and your question is not stored.',
- 'el': 'Τυχαίο τράβηγμα από 78 κάρτες, χωρίς επαναλήψεις. Κάθε κάρτα διαβάζεται με βάση τη θέση της στη διάταξη, το θέμα που επέλεξες, το σετ της (ή το ότι είναι Μεγάλη Αρκάνα) και το αν είναι όρθια ή ανάστροφη. Η συνολική ανάγνωση υπολογίζεται από το δικό σου τράβηγμα: πλήθος Μεγάλων Αρκάνων, ανάστροφες και κυρίαρχο σετ. Όλα τα κείμενα είναι πρωτότυπα συντακτικά· δεν χρησιμοποιείται AI, δεν προβλέπεται τίποτα και η ερώτησή σου δεν αποθηκεύεται.',
+ 'en': 'Random draw from 78 cards, without repeats. Each card is read by its position in the spread, the topic you chose, its suit (or Major Arcana status) and whether it is upright or reversed. The overall reading is built from your actual draw: the keyword of each card in its position and how open or reversed the cards are from start to end. All text is original editorial writing; no AI is used, nothing is predicted and your question is not stored.',
+ 'el': 'Τυχαίο τράβηγμα από 78 κάρτες, χωρίς επαναλήψεις. Κάθε κάρτα διαβάζεται με βάση τη θέση της στη διάταξη, το θέμα που επέλεξες, το σετ της (ή το ότι είναι Μεγάλη Αρκάνα) και το αν είναι όρθια ή ανάστροφη. Η συνολική ανάγνωση χτίζεται από το δικό σου τράβηγμα: τη λέξη-κλειδί κάθε κάρτας στη θέση της και το πόσο ανοιχτές ή ανάστροφες είναι οι κάρτες από την αρχή ως το τέλος. Όλα τα κείμενα είναι πρωτότυπα συντακτικά· δεν χρησιμοποιείται AI, δεν προβλέπεται τίποτα και η ερώτησή σου δεν αποθηκεύεται.',
 }
 
 
@@ -200,34 +191,30 @@ def interpret(card, kind, topic, lang, orientation, theme, major_lens=True):
     return ' '.join(parts), REFLECTION[lang][kind].format(t=t)
 
 
+def _keyword(theme):
+    return theme.split(',')[0].strip()
+
+
 def synthesis(cards, kinds, topic, question, lang):
-    """Compute the overall reading from the actual draw."""
-    out = []
+    """Compute the overall reading from the actual draw, as a short plain story."""
     q = ' '.join(question.split())
     if len(q) > 140:
         q = q[:137].rstrip() + '…'
-    out.append(QUESTION[lang].format(q=q) if q else TOPIC_ONLY[lang].format(t=TOPIC_LABEL[lang][topic]))
+    out = [QUESTION[lang].format(q=q) if q else TOPIC_ONLY[lang].format(t=TOPIC_LABEL[lang][topic])]
+    for card, kind in zip(cards, kinds):
+        out.append(STORY[lang][kind].format(k=_keyword(card['theme'])))
     if len(cards) > 1:
-        arc = ' → '.join(f"{c['position_label']}: {c['name']} ({ORIENT[lang][c['orientation']]})" for c in cards)
-        out.append(ARC[lang] + arc + '.')
-        majors = sum(c['arcana'] == 'major' for c in cards)
-        key = 'many' if majors >= 3 else 'some' if majors else 'none'
-        out.append(MAJORS_NOTE[lang][key].format(n=majors))
-        rev = sum(c['orientation'] == 'reversed' for c in cards)
-        key = 'none' if rev == 0 else 'most' if rev * 2 > len(cards) else 'mixed'
-        out.append(REVERSED_NOTE[lang][key].format(n=rev, total=len(cards)))
-        suits = [c['id'].split('-')[0] for c in cards if c['arcana'] == 'minor']
-        ranked = sorted(((suits.count(x), x) for x in set(suits)), reverse=True)
-        # Dominant only if one suit leads outright with at least two cards (no ties).
-        if ranked and ranked[0][0] >= 2 and (len(ranked) == 1 or ranked[0][0] > ranked[1][0]):
-            out.append(SUIT_DOMINANT[lang][ranked[0][1]])
+        half = len(cards) // 2
+        early = sum(c['orientation'] == 'reversed' for c in cards[:half])
+        late = sum(c['orientation'] == 'reversed' for c in cards[half:])
+        key = ('smooth' if early + late == 0 else 'opening' if early > late
+               else 'closing' if late > early else 'mixed')
+        out.append(MOVEMENT[lang][key])
+    last = cards[-1]
+    lens = MAJOR_LENS[lang][topic] if last['arcana'] == 'major' else SUIT_LENS[lang][last['id'].split('-')[0]][topic]
+    out.append(PRACTICE[lang] + lens[0].lower() + lens[1:])
     if 'future' in kinds:
         out.append(FUTURE_NOTE[lang])
-    if 'answer' in kinds:
-        c = cards[kinds.index('answer')]
-        out.append(ANSWER_NOTE[lang].format(name=c['name'], o=ORIENT[lang][c['orientation']], theme=c['theme']))
-    out.append(CLOSE[lang])
-    out[0]=out[0].rstrip()
     return ' '.join(out)
 
 
