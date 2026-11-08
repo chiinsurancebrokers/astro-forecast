@@ -13,6 +13,7 @@ from zoneinfo import ZoneInfo
 import swisseph as swe
 
 from .methods import tropical_positions
+from . import daily_texts as X
 from .tarot import draw_reading
 
 SIGNS = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
@@ -81,10 +82,14 @@ ASPECT_BODIES = {  # EN name, EN theme, EL "with <planet>", EL theme (accusative
 }
 
 TITLES = {
-    'en': {'sky': 'The sky today', 'focus': 'Your focus today', 'season': 'The season you are in',
-           'mood': 'The mood of the day', 'mercury': 'Mercury retrograde', 'prompt': 'A question to carry'},
-    'el': {'sky': 'Ο ουρανός σήμερα', 'focus': 'Η εστίασή σου σήμερα', 'season': 'Η εποχή στην οποία βρίσκεσαι',
-           'mood': 'Η διάθεση της ημέρας', 'mercury': 'Ανάδρομος Ερμής', 'prompt': 'Ένα ερώτημα για σήμερα'},
+    'en': {'sky': 'The sky today', 'general': 'Overview', 'love': 'Feelings & relationships',
+           'work': 'Work & money', 'mercury': 'Mercury retrograde', 'wellbeing': 'Energy & wellbeing',
+           'season': 'The season you are in', 'mood': 'The mood of the day', 'tip': 'Tip of the day',
+           'prompt': 'A question to carry'},
+    'el': {'sky': 'Ο ουρανός σήμερα', 'general': 'Γενικά', 'love': 'Συναισθήματα & σχέσεις',
+           'work': 'Εργασία & χρήματα', 'mercury': 'Ανάδρομος Ερμής', 'wellbeing': 'Ενέργεια & ευεξία',
+           'season': 'Η εποχή στην οποία βρίσκεσαι', 'mood': 'Η διάθεση της ημέρας',
+           'tip': 'Συμβουλή της ημέρας', 'prompt': 'Ένα ερώτημα για σήμερα'},
 }
 METHOD = {
     'en': ('Calculated from Western tropical planetary positions for 12:00 UT on the chosen date, using each '
@@ -174,6 +179,24 @@ def _aspect_sentence(item, lang):
     return f'The Moon in {row[0]} with {name_en}: {row[3]} {theme_en}.'
 
 
+def _planet_line(template, pos, name, idx, lang):
+    house = solar_house(pos[name]['sign'], idx)
+    retro = ''
+    if pos[name]['retrograde']:
+        retro = X.RETRO['el'][name] if lang == 'el' else X.RETRO['en']
+    return template[1 if lang == 'el' else 0].format(house=_house_phrase(house, lang), retro=retro)
+
+
+def _tip(sky, lang):
+    k = 1 if lang == 'el' else 0
+    if not sky['aspects']:
+        return X.NO_ASPECT[k]
+    top = sky['aspects'][0]
+    theme = ASPECT_BODIES[top['body']][3 if lang == 'el' else 1]
+    kind = {0: X.TIP_BLEND, 1: X.TIP_EASE, 3: X.TIP_EASE}.get(top['aspect'], X.TIP_TENSE)
+    return kind[k].format(theme=theme)
+
+
 def build_daily(sign, on_date, lang='el', sky=None):
     """Return the daily horoscope for one Sun sign on one date."""
     if lang not in TITLES:
@@ -181,44 +204,56 @@ def build_daily(sign, on_date, lang='el', sky=None):
     idx = sign_index(sign)
     sky = sky or sky_for(on_date)
     pos, el = sky['positions'], lang == 'el'
+    k = 1 if el else 0
     titles = TITLES[lang]
 
     moon_house = solar_house(pos['Moon']['sign'], idx)
     sun_house = solar_house(pos['Sun']['sign'], idx)
     moon_idx, sun_idx = SIGNS.index(pos['Moon']['sign']), SIGNS.index(pos['Sun']['sign'])
-    phase = PHASES[sky['phase']][1 if el else 0]
+    phase = PHASES[sky['phase']][k]
+    mood = X.MOON_MOOD[moon_idx][k]
+    invite = X.PHASE_INVITE[sky['phase']][k]
+    house_text = X.HOUSE_TEXT[moon_house - 1]
 
     if el:
-        sky_text = (f'Η Σελήνη βρίσκεται {sign_in(moon_idx, lang)} ({phase}) και ο Ήλιος {sign_in(sun_idx, lang)}.')
-        focus = (f'Η Σελήνη περνά σήμερα από τον {_house_phrase(moon_house, lang)}. '
-                 f'Το συναίσθημα και η προσοχή σου ίσως στρέφονται προς αυτά τα θέματα.')
+        sky_text = (f'Η Σελήνη βρίσκεται {sign_in(moon_idx, lang)} ({phase}) και ο Ήλιος {sign_in(sun_idx, lang)}. '
+                    f'Η Σελήνη είναι σήμερα {mood}. {invite}')
+        general = (f'Η Σελήνη περνά σήμερα από τον {_house_phrase(moon_house, lang)}. ' + house_text[1])
         season = (f'Ο Ήλιος βρίσκεται στον {_house_phrase(sun_house, lang)}: ένα θέμα που τις επόμενες εβδομάδες '
                   f'μπορεί να ζητά περισσότερο χώρο στη σκέψη σου.')
     else:
-        sky_text = f'The Moon is {sign_in(moon_idx, lang)} ({phase}) and the Sun is {sign_in(sun_idx, lang)}.'
-        focus = (f'The Moon passes through {_house_phrase(moon_house, lang)} today. '
-                 f'Your mood and attention may turn towards these themes.')
+        sky_text = (f'The Moon is {sign_in(moon_idx, lang)} ({phase}) and the Sun is {sign_in(sun_idx, lang)}. '
+                    f'The Moon is {mood} today. {invite}')
+        general = (f'The Moon passes through {_house_phrase(moon_house, lang)} today. ' + house_text[0])
         season = (f'The Sun is in {_house_phrase(sun_house, lang)}: a theme that may ask for more room '
                   f'in your thinking over the coming weeks.')
+    love = house_text[2 + k] + ' ' + _planet_line(X.VENUS_LINE, pos, 'Venus', idx, lang)
+    work = house_text[4 + k] + ' ' + _planet_line(X.MARS_LINE, pos, 'Mars', idx, lang)
+    wellbeing = X.WELLBEING[k].format(mood=mood)
 
     sections = [dict(key='sky', title=titles['sky'], text=sky_text),
-                dict(key='focus', title=titles['focus'], text=focus),
-                dict(key='season', title=titles['season'], text=season)]
-
-    mood = [_aspect_sentence(item, lang) for item in sky['aspects'][:2]]
-    if mood:
-        sections.append(dict(key='mood', title=titles['mood'], text=' '.join(mood)))
+                dict(key='general', title=titles['general'], text=general),
+                dict(key='love', title=titles['love'], text=love),
+                dict(key='work', title=titles['work'], text=work)]
 
     if pos['Mercury']['retrograde']:
         mercury_house = solar_house(pos['Mercury']['sign'], idx)
         if el:
             text = (f'Ο Ερμής είναι ανάδρομος στον {_house_phrase(mercury_house, lang)}. Συμβολικά, είναι μια '
-                    f'περίοδος για να ξαναδείς, να ελέγξεις και να διευκρινίσεις πριν προχωρήσεις.')
+                    f'περίοδος για να ξαναδείς, να ελέγξεις και να διευκρινίσεις πριν προχωρήσεις· ξαναδιάβασε '
+                    f'μηνύματα και συμφωνίες πριν τα στείλεις ή τα υπογράψεις.')
         else:
             text = (f'Mercury is retrograde in {_house_phrase(mercury_house, lang)}. Symbolically, this is '
-                    f'a period for revisiting, double-checking and clarifying before moving on.')
+                    f'a period for revisiting, double-checking and clarifying before moving on: reread messages '
+                    f'and agreements before you send or sign them.')
         sections.append(dict(key='mercury', title=titles['mercury'], text=text))
 
+    sections.append(dict(key='wellbeing', title=titles['wellbeing'], text=wellbeing))
+    sections.append(dict(key='season', title=titles['season'], text=season))
+    mood_lines = [_aspect_sentence(item, lang) for item in sky['aspects'][:2]]
+    if mood_lines:
+        sections.append(dict(key='mood', title=titles['mood'], text=' '.join(mood_lines)))
+    sections.append(dict(key='tip', title=titles['tip'], text=_tip(sky, lang)))
     sections.append(dict(key='prompt', title=titles['prompt'], text=HOUSES[moon_house - 1][3 if el else 2]))
 
     tarot = draw_reading(spread='one', lang=lang, reversals=True,

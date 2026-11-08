@@ -6,7 +6,9 @@ from app import app
 FAKE_SKY = dict(
     positions={'Sun': dict(sign='Scorpio', longitude=225.0, retrograde=False),
                'Moon': dict(sign='Scorpio', longitude=230.0, retrograde=False),
-               'Mercury': dict(sign='Libra', longitude=200.0, retrograde=True)},
+               'Mercury': dict(sign='Libra', longitude=200.0, retrograde=True),
+               'Venus': dict(sign='Virgo', longitude=170.0, retrograde=True),
+               'Mars': dict(sign='Libra', longitude=190.0, retrograde=False)},
     phase=0, elongation=5.0, aspects=[dict(body='Mercury', aspect=0, orb=0.6)])
 
 
@@ -26,7 +28,7 @@ class DailyHoroscopeTests(unittest.TestCase):
         result = build_daily('Aries', date(2026, 11, 8), 'en', sky=FAKE_SKY)
         self.assertEqual(result['sky']['moon_house'], 8)
         keys = [s['key'] for s in result['sections']]
-        self.assertEqual(keys, ['sky', 'focus', 'season', 'mood', 'mercury', 'prompt'])
+        self.assertEqual(keys, ['sky', 'general', 'love', 'work', 'mercury', 'wellbeing', 'season', 'mood', 'tip', 'prompt'])
         self.assertIn('8th house', result['sections'][1]['text'])
 
     def test_no_mercury_section_when_direct(self):
@@ -47,6 +49,36 @@ class DailyHoroscopeTests(unittest.TestCase):
         self.assertEqual((first['id'], first['orientation']), (again['id'], again['orientation']))
         other = {build_daily('Aries', date(2026, 5, d), 'en')['tarot']['id'] for d in range(1, 15)}
         self.assertGreater(len(other), 1)
+
+    def test_editorial_tables_are_complete_in_both_languages(self):
+        from astro import daily_texts as X
+        self.assertEqual(len(X.HOUSE_TEXT), 12)
+        for row in X.HOUSE_TEXT:
+            self.assertEqual(len(row), 6)
+            self.assertTrue(all(len(text) > 60 for text in row))
+        self.assertEqual(len(X.MOON_MOOD), 12)
+        self.assertEqual(len(X.PHASE_INVITE), 8)
+        for pair in X.MOON_MOOD + X.PHASE_INVITE:
+            self.assertTrue(pair[0] and pair[1])
+
+    def test_every_sign_and_language_builds_all_core_sections(self):
+        for lang in ('en', 'el'):
+            for name in SIGNS:
+                keys = [s['key'] for s in build_daily(name, date(2026, 3, 3), lang)['sections']]
+                for key in ('sky', 'general', 'love', 'work', 'wellbeing', 'season', 'tip', 'prompt'):
+                    self.assertIn(key, keys, (lang, name))
+
+    def test_retrograde_venus_is_noted_and_tip_follows_the_closest_aspect(self):
+        en = {s['key']: s['text'] for s in build_daily('Aries', date(2026, 11, 8), 'en', sky=FAKE_SKY)['sections']}
+        self.assertIn('retrograde', en['love'])
+        self.assertIn('Mars is in your 7th house', en['work'])
+        self.assertIn('meets thinking and communication', en['tip'])
+        el = {s['key']: s['text'] for s in build_daily('Aries', date(2026, 11, 8), 'el', sky=FAKE_SKY)['sections']}
+        self.assertIn('ανάδρομη', el['love'])
+        self.assertNotIn('ανάδρομος/η', el['love'])
+        quiet = dict(FAKE_SKY, aspects=[])
+        self.assertIn('steady rhythm', {s['key']: s['text'] for s in
+                      build_daily('Aries', date(2026, 11, 8), 'en', sky=quiet)['sections']}['tip'])
 
     def test_parse_date_validation(self):
         self.assertEqual(parse_date('2026-11-08'), date(2026, 11, 8))

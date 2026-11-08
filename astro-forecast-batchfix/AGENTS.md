@@ -124,3 +124,7 @@ rule carries a system tag such as `VEDIC`, `WESTERN_TRADITIONAL`, or
 - The page's "card of the day" is deliberately seeded by date so every visitor sees
   the same card for a given day. This is the only place the tarot deck is not drawn
   with SystemRandom; `/tarot` itself is unchanged.
+- Section wording lives in `astro/daily_texts.py` (original editorial text keyed to the
+  Moon's solar house, sign and phase, plus Venus/Mars placements). Do not add star
+  ratings or "love/money score" numbers: they would be heuristic scores presented as
+  predictions. Do not copy text from other horoscope sites.

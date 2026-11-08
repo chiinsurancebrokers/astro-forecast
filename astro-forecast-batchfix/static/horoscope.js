@@ -7,9 +7,10 @@ const validSign=id=>config.signs.some(s=>s.id===id);
 function localDate(){const d=new Date(),p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());}
 function store(sign){try{localStorage.setItem('horoscope-sign',sign);}catch(e){}}
 function recall(){try{return localStorage.getItem('horoscope-sign');}catch(e){return null;}}
+const ICONS={sky:'☾',general:'✦',love:'♡',work:'◈',mercury:'☿',wellbeing:'❀',season:'☉',mood:'☽',tip:'✧',prompt:'?'};
 function horoscopeMarkup(data){
  return '<h2>'+esc(data.glyph)+' '+esc(data.sign_name)+'</h2><p class="date">'+esc(t.date_label)+': '+esc(data.date)+'</p>'
-  +data.sections.map(s=>'<h3>'+esc(s.title)+'</h3><p'+(s.key==='prompt'?' class="reflection"':'')+'>'+esc(s.text)+'</p>').join('')
+  +data.sections.map(s=>'<h3><span aria-hidden="true">'+esc(ICONS[s.key]||'✦')+'</span> '+esc(s.title)+'</h3><p'+(s.key==='prompt'?' class="reflection"':'')+'>'+esc(s.text)+'</p>').join('')
   +'<details><summary>'+esc(t.method)+'</summary><p class="muted">'+esc(data.method)+'</p></details>';
 }
 function cardMarkup(card){
