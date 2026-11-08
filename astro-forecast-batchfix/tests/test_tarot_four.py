@@ -14,10 +14,8 @@ class FourCardTests(unittest.TestCase):
         self.assertEqual(len(r['guide']), 4)
         self.assertIn('Θα πάει καλά η σχέση μου;', r['overall'])
         self.assertIn('τάση', r['overall'])
-        self.assertIn('Το παρελθόν σου', r['overall'])
+        self.assertIn('δεν λέει ναι ή όχι', r['overall'])
         self.assertNotIn('  ', r['overall'])
-        for c in r['cards']:
-            self.assertIn(c['theme'], c['interpretation'])
 
     def test_interpretation_depends_on_position_and_topic(self):
         card = {c['id']: c for c in deck()}['cups-02']
@@ -40,8 +38,8 @@ class FourCardTests(unittest.TestCase):
         up = draw_reading('', 'four', 'en', True, Majors(0), 'general')['overall']
         rev = draw_reading('', 'four', 'en', True, Majors(1), 'general')['overall']
         self.assertIn('steady', up)
-        self.assertIn('Your past with this matter', up)
         self.assertIn('does not say yes or no', up)
+        self.assertIn('points to', up)
         self.assertIn('ups and downs', rev)
         self.assertNotIn('Major Arcana cards', up)
 
@@ -83,4 +81,4 @@ class WordingTests(unittest.TestCase):
             def getrandbits(self, n): return 0
         r = draw_reading('', 'four', 'en', True, Majors(), 'self')
         self.assertEqual(sum('As a Major Arcana' in c['interpretation'] for c in r['cards']), 1)
-        self.assertFalse(r['cards'][0]['interpretation'].startswith('Past'))
+        self.assertIn('shaped you', r['cards'][0]['interpretation'])

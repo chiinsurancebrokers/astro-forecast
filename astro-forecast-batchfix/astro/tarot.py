@@ -171,12 +171,12 @@ def draw_reading(question='',spread='three',lang='el',reversals=True,rng=None,to
         reversed_card=reversals and bool(rng.getrandbits(1))
         orientation='reversed' if reversed_card else 'upright'
         theme=card[('reversed_' if reversed_card else 'upright_')+lang]
-        text,prompt=interpret(card,kinds[index],topic,lang,orientation,theme,not major_seen)
+        text,prompt,card_meaning=interpret(card,kinds[index],topic,lang,orientation,theme,not major_seen)
         major_seen=major_seen or card['arcana']=='major'
         cards.append(dict(id=card['id'],name=card['name_'+lang],arcana=card['arcana'],
                           glyph=card['glyph'],orientation=orientation,
                           position=index,position_label=POSITIONS[lang][spread][index],
-                          theme=theme,interpretation=text,reflection=prompt))
+                          theme=theme,meaning=card_meaning,interpretation=text,reflection=prompt))
     overall=synthesis(cards,kinds,topic,question,lang)
     method=METHOD[lang]
     if lang=='el':

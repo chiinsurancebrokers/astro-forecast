@@ -28,26 +28,29 @@ TOPIC_PHRASE = {
 KINDS = {'one': ['focus'], 'three': ['past', 'present', 'answer'],
          'four': ['past', 'present', 'future', 'answer']}
 
-FRAME = {
- 'en': {'focus': 'A theme to reflect on around {t}:',
-        'past': 'What has shaped {t}:',
-        'present': 'Where you stand with {t}:',
-        'future': 'The direction that shows for {t} if things continue as they are:',
-        'answer': 'The stance the card suggests for {t}:'},
- 'el': {'focus': 'Ένα θέμα για στοχασμό γύρω από {t}:',
-        'past': 'Τι έχει διαμορφώσει {t}:',
-        'present': 'Πού βρίσκεσαι σε σχέση με {t}:',
-        'future': 'Η κατεύθυνση που διαφαίνεται για {t}, αν τα πράγματα συνεχίσουν όπως τώρα:',
-        'answer': 'Η στάση που προτείνει η κάρτα για {t}:'},
-}
 ORIENT = {'en': {'upright': 'upright', 'reversed': 'reversed'},
           'el': {'upright': 'όρθια', 'reversed': 'ανάστροφη'}}
-CARD_LINE = {'en': '{name} — theme: {theme}.', 'el': '{name} — θέμα: {theme}.'}
-ORIENT_NOTE = {
- 'en': {'upright': 'Upright, the theme is expressed openly and can be worked with directly.',
-        'reversed': 'Reversed, the theme asks to be reconsidered, or is only partly expressed so far.'},
- 'el': {'upright': 'Όρθια, το θέμα εκφράζεται ανοιχτά και μπορείς να δουλέψεις μαζί του άμεσα.',
-        'reversed': 'Ανάστροφη, το θέμα ζητά επανεξέταση ή εκφράζεται μόνο εν μέρει μέχρι τώρα.'},
+# One complete sentence per card: what it points to (upright) or asks to be reconsidered (reversed).
+MEANING = {
+ 'en': {'up': '{name} points to {t}.',
+        'rev_major': '{name}, reversed, asks for a closer look: {t}.',
+        'rev_minor': '{name}, reversed, asks you to reconsider its theme: {t}.'},
+ 'el': {'up': '{name}: δείχνει {t}.',
+        'rev_major': '{name} (ανάστροφη): ζητά {t}.',
+        'rev_minor': '{name} (ανάστροφη): ζητά επανεξέταση του θέματος: {t}.'},
+}
+# What the position adds to the card's meaning.
+POSITION_SENTENCE = {
+ 'en': {'focus': 'This is the theme to reflect on.',
+        'past': 'This is something that has shaped you so far.',
+        'present': 'This is what asks for your attention right now.',
+        'future': 'If you continue as you are, this is the tendency that shows — not a fixed outcome.',
+        'answer': 'This is the stance the card suggests for your question.'},
+ 'el': {'focus': 'Αυτό είναι το θέμα για στοχασμό.',
+        'past': 'Αυτό είναι κάτι που σε έχει διαμορφώσει μέχρι τώρα.',
+        'present': 'Αυτό ζητά την προσοχή σου αυτή τη στιγμή.',
+        'future': 'Αν συνεχίσεις όπως τώρα, αυτή είναι η τάση που διαφαίνεται — όχι δεδομένο αποτέλεσμα.',
+        'answer': 'Αυτή είναι η στάση που προτείνει η κάρτα για το ερώτημά σου.'},
 }
 
 SUIT_LENS = {
@@ -138,19 +141,6 @@ KIND_MEANING = {
 
 QUESTION = {'en': 'Your question: “{q}”.', 'el': 'Το ερώτημά σου: «{q}».'}
 TOPIC_ONLY = {'en': 'Theme: {t}.', 'el': 'Θέμα: «{t}».'}
-# One plain sentence per position; the card keyword sits in quotes so any phrase reads correctly.
-STORY = {
- 'en': {'focus': 'The theme to reflect on is “{k}”.',
-        'past': 'Your past with this matter carries the mark of “{k}”.',
-        'present': 'Right now the centre of gravity is “{k}”.',
-        'future': 'If you continue as you are, the tendency that shows is “{k}”.',
-        'answer': 'The answer card does not say yes or no; it suggests a stance: “{k}”.'},
- 'el': {'focus': 'Το θέμα για στοχασμό είναι «{k}».',
-        'past': 'Το παρελθόν σου σε αυτό το θέμα φέρει τη σφραγίδα του «{k}».',
-        'present': 'Αυτή τη στιγμή το κέντρο βάρους είναι «{k}».',
-        'future': 'Αν συνεχίσεις όπως τώρα, διαφαίνεται η τάση «{k}».',
-        'answer': 'Η κάρτα-απάντηση δεν λέει ναι ή όχι· προτείνει μια στάση: «{k}».'},
-}
 MOVEMENT = {
  'en': {'smooth': 'The journey is steady: the themes are expressed openly from start to finish.',
         'opening': 'Something that has been blocked or unclear so far looks set to open up toward the end.',
@@ -161,6 +151,8 @@ MOVEMENT = {
         'closing': 'Ό,τι ρέει σήμερα ίσως χρειαστεί δεύτερη ματιά αργότερα· γι’ αυτό το βήμα που θα επιλέξεις αξίζει προσοχή.',
         'mixed': 'Η διαδρομή έχει εναλλαγές: κάποια θέματα είναι ανοιχτά και άλλα ζητούν δεύτερη ματιά.'},
 }
+ANSWER_INTRO = {'en': 'The answer card does not say yes or no; it shows a stance.',
+                'el': 'Η κάρτα-απάντηση δεν λέει ναι ή όχι· δείχνει μια στάση.'}
 PRACTICE = {'en': 'In practice: ', 'el': 'Στην πράξη: '}
 FUTURE_NOTE = {
  'en': 'A tendency is not a fixed outcome — your choices can change it.',
@@ -172,37 +164,34 @@ METHOD = {
 }
 
 
-def interpret(card, kind, topic, lang, orientation, theme, major_lens=True):
-    """Return (interpretation, reflection) for one drawn card."""
-    t = TOPIC_PHRASE[lang][topic]
-    o = ORIENT[lang][orientation]
+def meaning(card, orientation, lang):
+    """One complete sentence about the card in its orientation."""
+    name = card['name_' + lang]
+    if orientation == 'upright':
+        return MEANING[lang]['up'].format(name=name, t=card['upright_' + lang])
     if card['arcana'] == 'major':
-        lens = MAJOR_LENS[lang][topic]
-    else:
-        lens = SUIT_LENS[lang][card['id'].split('-')[0]][topic]
-    parts = [FRAME[lang][kind].format(t=t),
-             CARD_LINE[lang].format(name=card['name_' + lang], o=o, theme=theme)]
-    # The Major Arcana sentence is generic; say it once per reading, not per card.
-    if card['arcana'] == 'minor' or major_lens:
-        parts.append(lens)
-    # An upright note is filler; only a reversal changes how the card is read.
-    if orientation == 'reversed':
-        parts.append(ORIENT_NOTE[lang][orientation])
-    return ' '.join(parts), REFLECTION[lang][kind].format(t=t)
+        return MEANING[lang]['rev_major'].format(name=name, t=card['reversed_' + lang])
+    return MEANING[lang]['rev_minor'].format(name=name, t=card['upright_' + lang])
 
 
-def _keyword(theme):
-    return theme.split(',')[0].strip()
+def interpret(card, kind, topic, lang, orientation, theme=None, major_lens=True):
+    """Return (interpretation, reflection, meaning) for one drawn card."""
+    t = TOPIC_PHRASE[lang][topic]
+    text = meaning(card, orientation, lang)
+    parts = [text, POSITION_SENTENCE[lang][kind]]
+    if card['arcana'] == 'minor':
+        parts.append(SUIT_LENS[lang][card['id'].split('-')[0]][topic])
+    elif major_lens:  # the generic Major Arcana sentence is said once per reading
+        parts.append(MAJOR_LENS[lang][topic])
+    return ' '.join(parts), REFLECTION[lang][kind].format(t=t), text
 
 
 def synthesis(cards, kinds, topic, question, lang):
-    """Compute the overall reading from the actual draw, as a short plain story."""
+    """Short plain-language wrap-up computed from the actual draw."""
     q = ' '.join(question.split())
     if len(q) > 140:
         q = q[:137].rstrip() + '…'
     out = [QUESTION[lang].format(q=q) if q else TOPIC_ONLY[lang].format(t=TOPIC_LABEL[lang][topic])]
-    for card, kind in zip(cards, kinds):
-        out.append(STORY[lang][kind].format(k=_keyword(card['theme'])))
     if len(cards) > 1:
         half = len(cards) // 2
         early = sum(c['orientation'] == 'reversed' for c in cards[:half])
@@ -211,8 +200,8 @@ def synthesis(cards, kinds, topic, question, lang):
                else 'closing' if late > early else 'mixed')
         out.append(MOVEMENT[lang][key])
     last = cards[-1]
-    lens = MAJOR_LENS[lang][topic] if last['arcana'] == 'major' else SUIT_LENS[lang][last['id'].split('-')[0]][topic]
-    out.append(PRACTICE[lang] + lens[0].lower() + lens[1:])
+    if 'answer' in kinds:
+        out.append(ANSWER_INTRO[lang] + ' ' + last['meaning'])
     if 'future' in kinds:
         out.append(FUTURE_NOTE[lang])
     return ' '.join(out)
