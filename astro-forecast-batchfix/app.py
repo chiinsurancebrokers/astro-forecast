@@ -166,9 +166,10 @@ def api_tarot_draw():
         reading=draw_reading(question=body.get('question',''),
                              spread=body.get('spread','three'),
                              lang=body.get('lang','el'),
-                             reversals=body.get('reversals',True))
+                             reversals=body.get('reversals',True),
+                             topic=body.get('topic','general'))
     except (ValueError, TypeError):
-        return jsonify({'error':'Check the question (up to 500 characters), language (el/en), spread (one/three) and reversals (true/false).'}), 400
+        return jsonify({'error':'Check the question (up to 500 characters), language (el/en), spread (one/three/four), topic (general/love/work/money/self) and reversals (true/false).'}), 400
     response=jsonify(reading)
     response.headers['Cache-Control']='no-store'
     return response

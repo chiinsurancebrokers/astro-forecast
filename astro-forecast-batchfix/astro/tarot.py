@@ -145,56 +145,44 @@ def deck():
 
 
 POSITIONS = {
- 'en': {'one':['Focus for reflection'], 'three':['Past influences','Present focus','Next conscious step']},
- 'el': {'one':['Θέμα για στοχασμό'], 'three':['Επιρροές του παρελθόντος','Εστίαση στο παρόν','Επόμενο συνειδητό βήμα']},
+ 'en': {'one':['Focus for reflection'], 'three':['Past influences','Present focus','Next conscious step'],
+        'four':['Past','Present','Future tendency','Answer']},
+ 'el': {'one':['Θέμα για στοχασμό'], 'three':['Επιρροές του παρελθόντος','Εστίαση στο παρόν','Επόμενο συνειδητό βήμα'],
+        'four':['Παρελθόν','Παρόν','Μέλλον (τάση)','Απάντηση']},
 }
 
 
-def draw_reading(question='',spread='three',lang='el',reversals=True,rng=None):
-    if lang not in POSITIONS or spread not in ('one','three'):
+def draw_reading(question='',spread='three',lang='el',reversals=True,rng=None,topic='general'):
+    from .tarot_reading import KINDS, TOPICS, TOPIC_LABEL, interpret, synthesis, guide, METHOD
+    if lang not in POSITIONS or spread not in KINDS:
         raise ValueError('Unsupported language or spread.')
+    if topic not in TOPICS:
+        raise ValueError('Unsupported topic.')
     if not isinstance(question,str) or len(question)>500:
         raise ValueError('Question must be text up to 500 characters.')
     if type(reversals) is not bool:
         raise ValueError('Reversals must be true or false.')
     rng=rng or SystemRandom()
-    selected=rng.sample(deck(),1 if spread=='one' else 3)
+    kinds=KINDS[spread]
+    selected=rng.sample(deck(),len(kinds))
     cards=[]
     for index,card in enumerate(selected):
         reversed_card=reversals and bool(rng.getrandbits(1))
+        orientation='reversed' if reversed_card else 'upright'
         theme=card[('reversed_' if reversed_card else 'upright_')+lang]
-        if lang=='el':
-            prefix=['Ως σύμβολο προηγούμενων εμπειριών, η κάρτα προσκαλεί σε ανασκόπηση με θέμα: ',
-                    'Στη θέση του παρόντος, η κάρτα προσφέρει ένα θέμα για παρατήρηση: ',
-                    'Ως επόμενο βήμα, η κάρτα προτείνει να εξετάσεις: '][index] if spread=='three' else 'Για τον σημερινό στοχασμό, εξέτασε: '
-            prompt=['Τι από αυτή την εμπειρία αξίζει να κρατήσεις και τι να αφήσεις;',
-                    'Πού αναγνωρίζεις αυτό το θέμα στην καθημερινότητά σου και πού δεν ταιριάζει;',
-                    'Ποια μικρή, συγκεκριμένη πράξη βρίσκεται στον δικό σου έλεγχο;'][index] if spread=='three' else 'Ποια μικρή, συγκεκριμένη πράξη θα εξέφραζε αυτή την ιδέα;'
-        else:
-            prefix=['As a symbol of earlier experience, reflect on: ',
-                    'In the present position, consider observing: ',
-                    'As a next step, consider exploring: '][index] if spread=='three' else 'For this reflection, consider: '
-            prompt=['What is worth carrying forward, and what could you leave behind?',
-                    'Where does this theme fit your experience, and where does it not?',
-                    'What small, concrete action is within your control?'][index] if spread=='three' else 'What small, concrete action could express this idea?'
+        text,prompt=interpret(card,kinds[index],topic,lang,orientation,theme)
         cards.append(dict(id=card['id'],name=card['name_'+lang],arcana=card['arcana'],
-                          glyph=card['glyph'],orientation='reversed' if reversed_card else 'upright',
+                          glyph=card['glyph'],orientation=orientation,
                           position=index,position_label=POSITIONS[lang][spread][index],
-                          theme=theme,interpretation=prefix+theme+'.',reflection=prompt))
+                          theme=theme,interpretation=text,reflection=prompt))
+    overall=synthesis(cards,kinds,topic,question,lang)
+    method=METHOD[lang]
     if lang=='el':
-        overall='Διάβασε τις κάρτες ως ερωτήματα, όχι ως περιγραφή του πεπρωμένου σου. '
-        overall+=('Η διαδρομή συνδέει όσα ανασκοπείς, όσα παρατηρείς σήμερα και μια επιλογή για το επόμενο βήμα.' if spread=='three' else 'Διάλεξε το μέρος του συμβόλου που σου είναι χρήσιμο και άφησε ό,τι δεν ταιριάζει.')
-        if spread=='three':
-            overall+=' Ανασκόπησε το θέμα «'+cards[0]['theme']+'», παρατήρησε το «'+cards[1]['theme']+'» και διάλεξε αν το «'+cards[2]['theme']+'» προσφέρει μια χρήσιμη κατεύθυνση. Δεν χρειάζεται να ταιριάζουν όλα στην εμπειρία σου.'
-        method='Τυχαίο τράβηγμα από 78 κάρτες. Πρωτότυπες συντακτικές περιλήψεις κοινών συμβολισμών· οι μικρές αρκάνες έχουν ειδικά όρθια θέματα και ανάστροφες προτροπές από τον βαθμό και τη σειρά τους. Η ανάστροφη θέση διαβάζεται ως πρόσκληση επανεξέτασης. Δεν χρησιμοποιείται AI ή σύνδεση με αστρολογικούς υπολογισμούς.'
         note='Για ψυχαγωγία και προσωπικό στοχασμό. Οι κάρτες δεν προβλέπουν γεγονότα, ούτε απαντούν σε ιατρικά, νομικά ή οικονομικά ζητήματα. Κάρτες όπως Θάνατος και Δικαιοσύνη είναι σύμβολα, όχι κυριολεκτικές προβλέψεις.'
     else:
-        overall='Read the cards as questions, rather than a description of your fate. '
-        overall+=('The sequence connects what you review, what you notice now and a choice for your next step.' if spread=='three' else 'Keep the part of the symbol that is useful and leave what does not fit.')
-        if spread=='three':
-            overall+=' Review the theme of '+cards[0]['theme']+'; observe '+cards[1]['theme']+'; then consider whether '+cards[2]['theme']+' offers a useful direction. Not every theme needs to fit your experience.'
-        method='Random draw from 78 cards. Original editorial summaries of common symbolism; minor cards have card-specific upright themes and rank/suit reversal prompts. Reversals invite reconsideration. No AI or connection to astronomical calculations is used.'
         note='For entertainment and self-reflection. Cards do not predict events or answer medical, legal or financial questions. Cards such as Death and Justice are symbols, not literal predictions.'
     return dict(reading_id=str(uuid4()),created_at=datetime.now(timezone.utc).isoformat(),
-                lang=lang,spread=spread,question=question.strip(),cards=cards,
+                lang=lang,spread=spread,topic=topic,topic_label=TOPIC_LABEL[lang][topic],
+                question=question.strip(),cards=cards,
+                guide=guide(POSITIONS[lang][spread],kinds,lang),
                 overall=overall,method=method,disclaimer=note)

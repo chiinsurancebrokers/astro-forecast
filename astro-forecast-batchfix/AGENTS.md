@@ -96,6 +96,11 @@ rule carries a system tag such as `VEDIC`, `WESTERN_TRADITIONAL`, or
 - Use server-side SystemRandom without replacement and optional reversals.
 - Do not claim third-party plugin integration, AI interpretation or predictions.
 - Questions use bounded POST JSON and are not stored by this application.
+- Spreads: `one`, `three` and `four` (past / present / future tendency / answer) with a
+  validated `topic` (general, love, work, money, self). Wording is composed in
+  `astro/tarot_reading.py` from position + topic + suit lens + card theme; the overall
+  reading is computed from the draw (majors, reversals, dominant suit). The future card
+  is a tendency, the answer card a stance — never a yes/no or a predicted event.
 - Original editorial card themes are symbolic, including Death and Justice;
   never turn them into literal medical, legal or financial claims.
 
