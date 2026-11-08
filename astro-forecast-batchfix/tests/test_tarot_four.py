@@ -14,9 +14,8 @@ class FourCardTests(unittest.TestCase):
         self.assertEqual(len(r['guide']), 4)
         self.assertIn('Θα πάει καλά η σχέση μου;', r['overall'])
         self.assertIn('τάση', r['overall'])
+        self.assertIn('δεν λέει ναι ή όχι', r['overall'])
         self.assertNotIn('  ', r['overall'])
-        for c in r['cards']:
-            self.assertIn(c['theme'], c['interpretation'])
 
     def test_interpretation_depends_on_position_and_topic(self):
         card = {c['id']: c for c in deck()}['cups-02']
@@ -31,13 +30,18 @@ class FourCardTests(unittest.TestCase):
         self.assertIn('In love', texts[(0, 'love')])
         self.assertIn('With money', texts[(0, 'money')])
 
-    def test_overall_is_computed_from_draw(self):
+    def test_overall_is_a_story_from_the_draw(self):
         class Majors:
+            def __init__(self, bit): self.bit = bit
             def sample(self, cards, n): return [c for c in cards if c['arcana'] == 'major'][:n]
-            def getrandbits(self, n): return 1
-        r = draw_reading('', 'four', 'en', True, Majors(), 'general')
-        self.assertIn('4 Major Arcana', r['overall'])
-        self.assertIn('Most cards are reversed', r['overall'])
+            def getrandbits(self, n): return self.bit
+        up = draw_reading('', 'four', 'en', True, Majors(0), 'general')['overall']
+        rev = draw_reading('', 'four', 'en', True, Majors(1), 'general')['overall']
+        self.assertIn('steady', up)
+        self.assertIn('does not say yes or no', up)
+        self.assertIn('points to', up)
+        self.assertIn('ups and downs', rev)
+        self.assertNotIn('Major Arcana cards', up)
 
     def test_all_topics_and_languages(self):
         for lang in ('el', 'en'):
@@ -69,7 +73,7 @@ class WordingTests(unittest.TestCase):
                 return [lookup[i] for i in ids][:n]
             def getrandbits(self, n): return 0
         r = draw_reading('', 'four', 'en', False, Fixed(), 'self')
-        self.assertNotIn('dominate', r['overall'])
+        self.assertNotIn('dominate', r['overall'])  # no dominance claims remain
 
     def test_major_lens_once_and_no_repeated_position_name(self):
         class Majors:
@@ -77,4 +81,4 @@ class WordingTests(unittest.TestCase):
             def getrandbits(self, n): return 0
         r = draw_reading('', 'four', 'en', True, Majors(), 'self')
         self.assertEqual(sum('As a Major Arcana' in c['interpretation'] for c in r['cards']), 1)
-        self.assertFalse(r['cards'][0]['interpretation'].startswith('Past'))
+        self.assertIn('shaped you', r['cards'][0]['interpretation'])

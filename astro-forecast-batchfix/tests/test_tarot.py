@@ -40,7 +40,7 @@ class TarotTests(unittest.TestCase):
         self.assertEqual(len(reading['cards']),1)
         self.assertEqual(reading['cards'][0]['orientation'],'reversed')
         self.assertEqual(reading['cards'][0]['position_label'],'Focus for reflection')
-        self.assertIn('reviewing',reading['cards'][0]['interpretation'])
+        self.assertIn('patient effort',reading['cards'][0]['interpretation'])
 
     def test_post_only_and_question_is_not_in_url(self):
         client=app.test_client()
