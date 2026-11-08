@@ -57,3 +57,24 @@ class FourCardTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class WordingTests(unittest.TestCase):
+    def test_tied_suits_not_called_dominant(self):
+        ids = ('swords-08', 'pentacles-08', 'swords-10', 'pentacles-02')
+
+        class Fixed:
+            def sample(self, cards, n):
+                lookup = {c['id']: c for c in cards}
+                return [lookup[i] for i in ids][:n]
+            def getrandbits(self, n): return 0
+        r = draw_reading('', 'four', 'en', False, Fixed(), 'self')
+        self.assertNotIn('dominate', r['overall'])
+
+    def test_major_lens_once_and_no_repeated_position_name(self):
+        class Majors:
+            def sample(self, cards, n): return [c for c in cards if c['arcana'] == 'major'][:n]
+            def getrandbits(self, n): return 0
+        r = draw_reading('', 'four', 'en', True, Majors(), 'self')
+        self.assertEqual(sum('As a Major Arcana' in c['interpretation'] for c in r['cards']), 1)
+        self.assertFalse(r['cards'][0]['interpretation'].startswith('Past'))

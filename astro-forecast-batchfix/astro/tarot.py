@@ -166,11 +166,13 @@ def draw_reading(question='',spread='three',lang='el',reversals=True,rng=None,to
     kinds=KINDS[spread]
     selected=rng.sample(deck(),len(kinds))
     cards=[]
+    major_seen=False
     for index,card in enumerate(selected):
         reversed_card=reversals and bool(rng.getrandbits(1))
         orientation='reversed' if reversed_card else 'upright'
         theme=card[('reversed_' if reversed_card else 'upright_')+lang]
-        text,prompt=interpret(card,kinds[index],topic,lang,orientation,theme)
+        text,prompt=interpret(card,kinds[index],topic,lang,orientation,theme,not major_seen)
+        major_seen=major_seen or card['arcana']=='major'
         cards.append(dict(id=card['id'],name=card['name_'+lang],arcana=card['arcana'],
                           glyph=card['glyph'],orientation=orientation,
                           position=index,position_label=POSITIONS[lang][spread][index],
