@@ -17,7 +17,7 @@ class HeindelTests(unittest.TestCase):
         self.assertEqual((s[0]['citations'][0]['printed_page'], s[0]['citations'][0]['pdf_page']), (100, 108))
         self.assertEqual(s[0]['citations'][0]['source_id'], 'heindel_simplified')
 
-    def test_tie_is_not_called_a_lean(self):
+    def test_no_majority_is_not_called_a_lean(self):
         p = self.planets(['Aries', 'Cancer', 'Taurus', 'Leo', 'Gemini', 'Virgo', 'Libra'])
         self.assertNotIn(' of 7 are in', heindel_sections(p, citation)[0]['paragraphs'][0])
 

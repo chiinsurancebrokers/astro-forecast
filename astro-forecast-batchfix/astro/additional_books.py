@@ -75,7 +75,8 @@ def heindel_sections(planets, cite):
     for n in present:
         counts.setdefault(_QUALITY_OF[planets[n]['sign']], []).append(n)
     ranked = sorted(counts.items(), key=lambda kv: -len(kv[1]))
-    lead = ranked[0] if len(ranked) == 1 or len(ranked[0][1]) > len(ranked[1][1]) else None
+    # A lean needs a clear majority of the seven planets (4+), not just a plurality.
+    lead = ranked[0] if len(ranked[0][1]) >= 4 else None
     facts = '; '.join(f"{q}: {', '.join(v)}" for q, v in sorted(counts.items()))
     if lead:
         q, who = lead
