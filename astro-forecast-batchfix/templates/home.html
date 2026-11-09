@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="{{ lang }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Astro Intelligence</title>
+<meta name="theme-color" content="#080e23">
+<style>
+:root{color-scheme:dark;--navy:#080e23;--panel:rgba(20,31,59,.78);--line:rgba(183,198,239,.14);--muted:#a4b1cd;--ink:#eff3ff;--gold:#e7c68d;--violet:#ac9bff;--mint:#7bd7c5}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;color:var(--ink);background:radial-gradient(ellipse at 78% 0,rgba(95,93,174,.22),transparent 34rem),radial-gradient(ellipse at 8% 60%,rgba(45,131,153,.12),transparent 36rem),var(--navy);font:16px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+a{color:inherit}
+main{max-width:1040px;margin:0 auto;padding:0 20px 64px}
+.hero{padding:44px 0 28px}
+.hero h1{margin:0 0 12px;font:500 clamp(30px,6vw,48px)/1.1 Georgia,"Times New Roman",serif;letter-spacing:-.01em}
+.hero p{margin:0;max-width:620px;color:var(--muted);font-size:17px}
+.lang{display:flex;gap:6px;justify-content:flex-end;padding-top:14px}
+.lang a{padding:5px 12px;border:1px solid var(--line);border-radius:8px;font-size:12px;text-decoration:none;color:var(--muted)}
+.lang a[aria-current]{background:var(--gold);color:#1a1405;border-color:var(--gold);font-weight:700}
+h2{margin:40px 0 14px;font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--gold)}
+.signs{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.signs a{display:grid;justify-items:center;gap:2px;padding:11px 4px;border:1px solid var(--line);border-radius:12px;background:var(--panel);text-decoration:none;font-size:12px;color:var(--muted)}
+.signs a b{font-size:22px;font-weight:400;color:var(--ink)}
+.signs a:hover,.signs a:focus-visible{border-color:var(--gold);outline:none}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.cards.two{grid-template-columns:repeat(2,1fr)}
+.card{display:flex;flex-direction:column;gap:6px;padding:20px;border:1px solid var(--line);border-radius:16px;background:var(--panel);text-decoration:none}
+.card:hover,.card:focus-visible{border-color:var(--gold);outline:none}
+.card .ico{font-size:24px;color:var(--gold)}
+.card strong{font-size:18px}
+.card span{color:var(--muted);font-size:14px}
+.card .go{margin-top:auto;padding-top:8px;color:var(--violet);font-size:13px;font-weight:600}
+.more{display:grid;grid-template-columns:repeat(2,1fr);gap:8px 22px}
+.more a{display:flex;justify-content:space-between;gap:12px;padding:12px 2px;border-bottom:1px solid var(--line);text-decoration:none}
+.more a span{color:var(--muted);font-size:13px;text-align:right}
+.trust{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.trust div{padding:16px 18px;border-left:3px solid var(--mint);background:rgba(123,215,197,.05);border-radius:0 12px 12px 0;font-size:14px;color:var(--muted)}
+.trust div:nth-child(2){border-color:var(--violet);background:rgba(172,155,255,.06)}
+.trust div:nth-child(3){border-color:var(--gold);background:rgba(231,198,141,.06)}
+.trust b{display:block;margin-bottom:2px;color:var(--ink)}
+@media(max-width:760px){.signs{grid-template-columns:repeat(4,1fr)}.cards,.cards.two,.more,.trust{grid-template-columns:1fr}.hero{padding-top:30px}}
+</style>
+</head>
+<body>
+{% include 'app_menu.html' %}
+{% set el = lang == 'el' %}
+<main>
+<div class="lang" aria-label="Language"><a href="/?lang=en" {% if not el %}aria-current="true"{% endif %}>EN</a><a href="/?lang=el" {% if el %}aria-current="true"{% endif %}>EL</a></div>
+<section class="hero">
+<h1>{{ 'Ο ουρανός σου, με σαφήνεια' if el else 'Your sky, made clear' }}</h1>
+<p>{{ 'Υπολογισμένες θέσεις πλανητών και συμβολική ανάγνωση από κλασικά βιβλία αστρολογίας. Για στοχασμό, όχι για προβλέψεις.' if el else 'Calculated planet positions and a symbolic reading drawn from classic astrology books. For reflection, not prediction.' }}</p>
+</section>
+
+<h2>{{ 'Ωροσκόπιο σήμερα — διάλεξε το ζώδιό σου' if el else "Today's horoscope — pick your sign" }}</h2>
+<nav class="signs" aria-label="{{ 'Ζώδια' if el else 'Zodiac signs' }}">
+{% for sid, glyph, en, gr in [('Aries','♈︎','Aries','Κριός'),('Taurus','♉︎','Taurus','Ταύρος'),('Gemini','♊︎','Gemini','Δίδυμοι'),('Cancer','♋︎','Cancer','Καρκίνος'),('Leo','♌︎','Leo','Λέων'),('Virgo','♍︎','Virgo','Παρθένος'),('Libra','♎︎','Libra','Ζυγός'),('Scorpio','♏︎','Scorpio','Σκορπιός'),('Sagittarius','♐︎','Sagittarius','Τοξότης'),('Capricorn','♑︎','Capricorn','Αιγόκερως'),('Aquarius','♒︎','Aquarius','Υδροχόος'),('Pisces','♓︎','Pisces','Ιχθύες')] %}
+<a href="/horoscope?sign={{ sid }}&lang={{ lang }}"><b>{{ glyph }}</b>{{ gr if el else en }}</a>
+{% endfor %}
+</nav>
+
+<h2>{{ 'Ξεκίνα εδώ' if el else 'Start here' }}</h2>
+<div class="cards">
+<a class="card" href="/natal-reading?lang={{ lang }}"><div class="ico">☉</div><strong>{{ 'Γενέθλιος χάρτης' if el else 'Your natal chart' }}</strong><span>{{ 'Βάλε ημερομηνία, ώρα και τόπο γέννησης και διάβασε αναλυτική ανάγνωση.' if el else 'Enter your birth date, time and place for a detailed reading.' }}</span><em class="go">{{ 'Άνοιγμα →' if el else 'Open →' }}</em></a>
+<a class="card" href="/horoscope?lang={{ lang }}"><div class="ico">☽</div><strong>{{ 'Ημερήσιο ωροσκόπιο' if el else 'Daily horoscope' }}</strong><span>{{ 'Από τον πραγματικό ουρανό της ημέρας: Σελήνη, φάση και όψεις.' if el else "From today's real sky: Moon, phase and aspects." }}</span><em class="go">{{ 'Άνοιγμα →' if el else 'Open →' }}</em></a>
+<a class="card" href="/tarot?lang={{ lang }}"><div class="ico">✦</div><strong>{{ 'Ανάγνωση Tarot' if el else 'Tarot reading' }}</strong><span>{{ 'Τέσσερις κάρτες: παρελθόν, παρόν, μέλλον, απάντηση, ανά θέμα.' if el else 'Four cards: past, present, future, answer, by topic.' }}</span><em class="go">{{ 'Άνοιγμα →' if el else 'Open →' }}</em></a>
+</div>
+
+<h2>{{ 'Σε βάθος' if el else 'Go deeper' }}</h2>
+<div class="more">
+<a href="/platform#timing"><b>{{ 'Μηνιαία εικόνα χρονισμού' if el else 'Monthly timing outlook' }}</b><span>{{ 'ευρετικό, μη επικυρωμένο' if el else 'heuristic, not validated' }}</span></a>
+<a href="/platform#life-periods"><b>{{ 'Περίοδοι ζωής' if el else 'Life chapters & periods' }}</b><span>Vimshottari</span></a>
+<a href="/platform#compatibility"><b>{{ 'Συμβατότητα' if el else 'Compatibility' }}</b><span>{{ 'σύγκριση δύο χαρτών' if el else 'two charts compared' }}</span></a>
+<a href="/platform#career"><b>{{ 'Καριέρα και σκοπός' if el else 'Career & purpose' }}</b><span>{{ 'οίκοι 2, 6, 10, 11' if el else 'houses 2, 6, 10, 11' }}</span></a>
+<a href="/platform#geo"><b>GeoAstrology</b><span>{{ 'ο χάρτης σε άλλο τόπο' if el else 'your chart in another place' }}</span></a>
+<a href="/platform#ask"><b>{{ 'Ρώτα τον χάρτη σου' if el else 'Ask your chart' }}</b><span>{{ 'ερώτηση → σχετικά στοιχεία' if el else 'question → relevant evidence' }}</span></a>
+<a href="/methods"><b>{{ 'Δυτικό και Βεδικό · ημερολόγιο παρατήρησης' if el else 'Western & Vedic · observation journal' }}</b><span>{{ 'σύγκριση μεθόδων' if el else 'method comparison' }}</span></a>
+<a href="/monitor"><b>{{ 'Παρακολούθηση τρανζίτ Vimshottari' if el else 'Vimshottari transit monitor' }}</b><span>{{ 'εργαλείο για προχωρημένους' if el else 'advanced tool' }}</span></a>
+<a href="/platform"><b>{{ 'Όλα τα εργαλεία' if el else 'All tools' }}</b><span>{{ 'πλήρης πίνακας' if el else 'full workspace' }}</span></a>
+</div>
+
+<h2>{{ 'Τι σημαίνει κάθε ένδειξη' if el else 'What each label means' }}</h2>
+<div class="trust">
+<div><b>{{ 'Υπολογισμένο' if el else 'Calculated' }}</b>{{ 'Θέσεις πλανητών, ζώδια, οίκοι και όψεις από το Swiss Ephemeris. Ελέγχεται.' if el else 'Planet positions, signs, houses and aspects from the Swiss Ephemeris. Checkable.' }}</div>
+<div><b>{{ 'Συμβολικό' if el else 'Symbolic' }}</b>{{ 'Κείμενα ερμηνείας από κλασικά βιβλία, παραφρασμένα με παραπομπές. Παραδοσιακή ανάγνωση, όχι γεγονός.' if el else 'Interpretive text paraphrased from classic books, with citations. Traditional reading, not fact.' }}</div>
+<div><b>{{ 'Μη επικυρωμένο' if el else 'Not validated' }}</b>{{ 'Βαθμολογίες χρονισμού και συμβατότητας. Δεν έχουν δοκιμαστεί με πραγματικά αποτελέσματα.' if el else 'Timing and compatibility scores. They have not been tested against real outcomes.' }}</div>
+</div>
+</main>
+</body>
+</html>

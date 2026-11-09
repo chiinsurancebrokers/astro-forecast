@@ -223,6 +223,12 @@ def api_methods():
 
 
 @app.route("/")
+def home():
+    lang = _parse_lang(request.args)
+    return render_template("home.html", lang=lang)
+
+
+@app.route("/monitor")
 def index():
     lang = _parse_lang(request.args)
     return render_template("index.html", defaults=DEFAULTS, lang=lang,
