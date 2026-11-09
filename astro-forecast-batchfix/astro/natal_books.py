@@ -5,7 +5,7 @@ one-based scan pages, which can differ from the printed pagination.
 """
 import swisseph as swe
 from datetime import datetime, timedelta
-from .additional_books import additional_natal_sections, esoteric_sections
+from .additional_books import additional_natal_sections, esoteric_sections, heindel_sections
 from .life_periods import build_life_period_report
 from .ephemeris import PLANET_IDS, sign_of, whole_sign_house_of
 from .historical_specialists import run_historical_specialists
@@ -34,7 +34,8 @@ def citation(source, pdf_page, printed_page, chapter):
               'raphael_guide': ('The Guide to Astrology', 'Raphael'),
               'bart_success': ('Thru the Stars to Success: Astrology Today', 'Belle Bart'),
               'pontin_manual': ('Manual of Astrology', 'Marie Juliette Pontin'),
-              'leo_esoteric': ('Esoteric Astrology', 'Alan Leo')}
+              'leo_esoteric': ('Esoteric Astrology', 'Alan Leo'),
+              'heindel_simplified': ('Simplified Scientific Astrology', 'Max Heindel')}
     title, author = titles[source]
     return {'source_id': source, 'title': title, 'author': author,
             'pdf_page': pdf_page, 'printed_page': printed_page, 'chapter': chapter,
@@ -207,13 +208,14 @@ def synthesize_natal_reading(planets, aspects, sun_index, chart=None):
             sections.insert(1,delineation['overview'])
     sections.extend(additional_natal_sections(planets,citation))
     esoteric = esoteric_sections(planets,citation)
+    heindel = heindel_sections(planets,citation)
     references = []
-    reference_sections = sections + esoteric + (delineation['planet_sections'] + delineation['house_sections'] if delineation else [])
+    reference_sections = sections + esoteric + heindel + (delineation['planet_sections'] + delineation['house_sections'] if delineation else [])
     for section in reference_sections:
         for c in section['citations']:
             if c not in references:
                 references.append(c)
-    return {'sections': sections, 'esoteric_sections':esoteric, 'references': references,
+    return {'sections': sections, 'esoteric_sections':esoteric, 'heindel_sections':heindel, 'references': references,
             'planet_sections': delineation['planet_sections'] if delineation else [],
             'house_sections': delineation['house_sections'] if delineation else [],
             'delineation_note': delineation['method_note'] if delineation else '',

@@ -273,6 +273,7 @@ TOPIC_ALIASES = {
 SOURCES.update({
  "bart_success": {"title":"Thru the Stars to Success: Astrology Today", "author":"Belle Bart", "system":"WESTERN_TRADITIONAL", "coverage":["self-knowledge","personal agency","preparation"], "year":1923, "pdf_pages":136, "ingestion_status":"selected_passages_verified"},
  "pontin_manual": {"title":"Manual of Astrology", "author":"Marie Juliette Pontin", "system":"WESTERN_TRADITIONAL", "coverage":["selected Mercury sign descriptions"], "year":1924, "pdf_pages":88, "ingestion_status":"selected_passages_verified", "scan_note":"Kaliastra digitization; source attribution retained; no scan redistributed."},
+ "heindel_simplified": {"title":"Simplified Scientific Astrology", "author":"Max Heindel", "system":"ESOTERIC_HISTORICAL", "coverage":["house topics","sign qualities","aspects as growth"], "year":1919, "pdf_pages":218, "ingestion_status":"selected_passages_verified"},
  "leo_esoteric": {"title":"Esoteric Astrology", "author":"Alan Leo", "system":"ESOTERIC_HISTORICAL", "coverage":["Saturn symbolism","responsibility","esoteric philosophy"], "year":1918, "pdf_pages":324, "ingestion_status":"selected_passages_verified"},
 })
 ENTRIES.extend([

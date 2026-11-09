@@ -137,3 +137,22 @@ RETRO = {
     'el': {'Venus': ' Είναι ανάδρομη, άρα η επανεξέταση ταιριάζει περισσότερο από ένα νέο ξεκίνημα.',
            'Mars': ' Είναι ανάδρομος, άρα η επανεξέταση ταιριάζει περισσότερο από ένα νέο ξεκίνημα.'},
 }
+
+
+# Sign qualities and two element notes, paraphrased from Max Heindel, Simplified Scientific
+# Astrology (1919): Cardinal p. 100, Common p. 101, Fixed p. 118, Airy p. 94, Watery p. 174.
+# Heindel gives no comparable note for Fire or Earth, so none is written for them.
+QUALITY = [  # (EN, EL) by sign index % 3: Cardinal, Fixed, Common
+ ('The Moon is in a Cardinal sign, which Heindel describes as promoting activity: it favours getting things moving rather than waiting.',
+  'Η Σελήνη βρίσκεται σε καρδινάλιο ζώδιο, που ο Heindel περιγράφει ως ζώδιο που ενισχύει τη δράση: ευνοεί το να βάλεις κάτι σε κίνηση αντί να περιμένεις.'),
+ ('The Moon is in a Fixed sign, which Heindel links with steadiness and perseverance: it favours finishing what you already began.',
+  'Η Σελήνη βρίσκεται σε σταθερό ζώδιο, που ο Heindel συνδέει με σταθερότητα και επιμονή: ευνοεί το να ολοκληρώσεις ό,τι έχεις ήδη ξεκινήσει.'),
+ ('The Moon is in a Common sign, which Heindel calls flexible and changeable: it favours adapting plans, and it asks you not to scatter your effort.',
+  'Η Σελήνη βρίσκεται σε κοινό ζώδιο, που ο Heindel χαρακτηρίζει ευέλικτο και μεταβλητό: ευνοεί την προσαρμογή των σχεδίων και ζητά να μη διασκορπίσεις την προσπάθειά σου.'),
+]
+ELEMENT_NOTE = {  # by sign index % 4: 2 = Air, 3 = Water
+ 2: ('It is an Airy sign, whose influence Heindel calls mostly mental and intellectual, so thinking and talking things through come easily.',
+     'Είναι ζώδιο του Αέρα, που ο Heindel λέει ότι επιδρά κυρίως στη σκέψη και τον νου, άρα η σκέψη και η συζήτηση βγαίνουν πιο εύκολα.'),
+ 3: ('It is a Watery sign, which Heindel associates with the psychic, feeling side of life, so mood and sensitivity may count for more than usual.',
+     'Είναι ζώδιο του Νερού, που ο Heindel συνδέει με την ψυχική, συναισθηματική πλευρά της ζωής, άρα η διάθεση και η ευαισθησία μπορεί να μετρούν περισσότερο.'),
+}
